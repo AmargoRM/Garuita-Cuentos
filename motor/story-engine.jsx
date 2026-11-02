@@ -18,7 +18,8 @@ const FMT = {
 };
 
 const IDS = ['conejo', 'cucaracha', 'gallina', 'zorra', 'coyote', 'tigre', 'tortuga', 'mono', 'danta', 'perezoso', 'tucan', 'vaca', 'perro', 'gato', 'mariposa'];
-const ACTIONS = ['quieto', 'saltar', 'caminar', 'tocar', 'saludar', 'hablar', 'bailar', 'comer', 'dormir', 'reir', 'correr', 'abrazar', 'regalo', 'asustarse'];
+const ACTIONS = ['quieto', 'saltar', 'caminar', 'tocar', 'saludar', 'hablar', 'bailar', 'comer', 'dormir', 'reir', 'correr', 'abrazar', 'regalo', 'asustarse', 'recoger', 'tirar'];
+const TRASH = ['botella', 'lata', 'bolsa', 'papel'];
 const ENTRIES = ['ya', 'izquierda', 'derecha', 'aparece', 'puerta'];
 const PLACES = { pueblito: 'Pueblito', bosque: 'Bosque', rio: 'Río', playa: 'Playa', mercado: 'Mercado', casa: 'Casa', noche: 'Noche' };
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
@@ -30,6 +31,8 @@ function normAct(s) {
   if (n.startsWith('asust') || n.includes('sorpr')) return 'asustarse';
   if (n.startsWith('abraz')) return 'abrazar';
   if (n.startsWith('toc')) return 'tocar';
+  if (n.startsWith('recog') || n.startsWith('limpi') || n.startsWith('junt')) return 'recoger';
+  if (n.startsWith('tir') || n.startsWith('bota')) return 'tirar';
   if (n.startsWith('ri') || n.startsWith('re')) return n.startsWith('reg') ? 'regalo' : 'reir';
   return ACTIONS.find((a) => n.startsWith(a.slice(0, 4))) || 'quieto';
 }
@@ -43,10 +46,18 @@ function sanitizeStory(st) {
     let cast = (Array.isArray(e.personajes) ? e.personajes : []).map((c) => ({
       id: normId(c && c.id), accion: normAct(c && c.accion), entrada: ENTRIES.includes(norm(c && c.entrada)) ? norm(c.entrada) : 'ya',
       dice: String((c && c.dice) || '').slice(0, 60), hacia: normId(c && c.hacia),
+      objeto: TRASH.includes(norm(c && c.objeto)) ? norm(c.objeto) : null,
     })).filter((c) => c.id && !seen.has(c.id) && seen.add(c.id)).slice(0, 3);
     let door = false;
     cast.forEach((c) => { if (c.entrada === 'puerta') { if (door) c.entrada = 'aparece'; door = true; } });
-    out.escenas.push({ lugar, texto: String(e.texto || '').slice(0, 140), palabra: String(e.palabra || '').toUpperCase().slice(0, 18), personajes: cast });
+    out.escenas.push({
+      lugar, texto: String(e.texto || '').slice(0, 140), palabra: String(e.palabra || '').toUpperCase().slice(0, 18), personajes: cast,
+      // Opcionales para cuentos ambientales:
+      basura: clamp(Math.round(Number(e.basura) || 0), 0, 3), // 0 nada · 1 poca · 2 bastante · 3 mucha
+      sucia: norm(e.agua) === 'sucia',                          // agua del río color lodo
+      limpiar: !!e.limpiar,                                     // la basura va desapareciendo durante la escena
+      botes: !!e.botes,                                         // tres basureros de reciclaje
+    });
   });
   return out;
 }
@@ -407,7 +418,53 @@ function Food({ kind, x, y, left }) {
       {kind === 'banano' && <path d="M -30 -30 Q -24 20 30 24 Q -4 2 -18 -36 Z" fill="#FFD84D" {...OUT} strokeWidth={5} />}
       {kind === 'maiz' && (<g><ellipse cx="0" cy="-6" rx="14" ry="30" fill="#FFD23F" {...OUT} strokeWidth={5} /><path d="M -14 10 Q -22 30 -6 34 M 14 10 Q 22 30 6 34" fill="#7ED957" {...OUT} strokeWidth={4} /></g>)}
       {kind === 'lechuga' && <circle cx="0" cy="-6" r="26" fill="#7ED957" {...OUT} strokeWidth={5} />}
+      {TRASH.includes(kind) && <TrashItem kind={kind} x={0} y={-6} s={1.1} rot={-10} />}
       {kind === 'manzana' && (<g><circle cx="0" cy="-4" r="24" fill="#FF3B3B" {...OUT} strokeWidth={5} /><path d="M 0 -26 Q 12 -40 22 -32" fill="#3FB34F" {...OUT} strokeWidth={4} /></g>)}
+    </g>
+  );
+}
+
+function TrashItem({ kind, x, y, s = 1, rot = 0, o = 1 }) {
+  if (s <= 0.02) return null;
+  const st = { stroke: INK, strokeWidth: 4, strokeLinejoin: 'round' };
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${rot}) scale(${s})`} opacity={o}>
+      {kind === 'botella' && (<g><rect x="-15" y="-34" width="30" height="62" rx="12" fill="#CDEFFF" {...st} /><rect x="-15" y="-10" width="30" height="16" fill="#FF6FB5" {...st} /><rect x="-8" y="-46" width="16" height="13" rx="3" fill="#2F7DEB" {...st} /></g>)}
+      {kind === 'lata' && (<g><rect x="-17" y="-28" width="34" height="56" rx="6" fill="#FF3B3B" {...st} /><ellipse cx="0" cy="-28" rx="17" ry="6" fill="#D9D9D9" {...st} /><path d="M -17 4 L 17 -6" stroke="#fff" strokeWidth="6" /></g>)}
+      {kind === 'bolsa' && (<g><path d="M -30 -20 Q -36 30 0 32 Q 36 30 30 -20 Z" fill="#F4F4F4" {...st} /><path d="M -22 -20 Q -22 -46 -8 -30 M 22 -20 Q 22 -46 8 -30" fill="none" {...st} strokeWidth={5} /></g>)}
+      {kind === 'papel' && <path d="M -26 -18 L -6 -24 L 4 -14 L 26 -20 L 20 4 L 28 18 L 4 22 L -10 14 L -28 20 L -20 0 Z" fill="#FFD84D" {...st} />}
+    </g>
+  );
+}
+// Basura de la escena: flota en el río o queda tirada en el suelo.
+const TRASH_SPOTS = [[-700, -190], [520, -90], [-260, -150], [820, -60], [120, -210], [-980, -120], [360, -170], [-520, -70], [980, -140], [-60, -95]];
+function SceneTrash({ sc, u, T }) {
+  const n = [0, 3, 6, 10][sc.basura || 0];
+  if (!n) return null;
+  const k = sc.halfW / 960, river = sc.lugar === 'rio';
+  return (
+    <g>
+      {TRASH_SPOTS.slice(0, n).map(([x, y], j) => {
+        const gone = sc.limpiar ? EZ.glide(seg(u, 1 + ((j + 0.5) / n) * (sc.dur - 2.6), 1.6 + ((j + 0.5) / n) * (sc.dur - 2.6))) : 0;
+        const yy = river ? y + Math.sin(T * 1.6 + j) * 6 : 30 + (j % 3) * 22;
+        return <TrashItem key={j} kind={TRASH[j % 4]} x={x * k} y={yy} s={(river ? 1 : 1.15) * (1 - gone)} rot={river ? 70 + Math.sin(T * 1.2 + j * 2) * 12 : (j * 47) % 90 - 45} />;
+      })}
+    </g>
+  );
+}
+function RecycleBins({ halfW }) {
+  const cols = [['#2F7DEB', 'P'], ['#FFD23F', 'L'], ['#3FB34F', 'O']];
+  const x0 = halfW - 170;
+  return (
+    <g>
+      {cols.map(([c, l], j) => (
+        <g key={j} transform={`translate(${x0 - j * 150} 0)`}>
+          <path d="M -55 -150 L 55 -150 L 45 0 L -45 0 Z" fill={c} {...OUT} />
+          <rect x="-64" y="-176" width="128" height="30" rx="10" fill={c} {...OUT} />
+          <path d="M -20 -100 A 22 22 0 1 1 20 -100" fill="none" stroke="#fff" strokeWidth="9" strokeLinecap="round" />
+          <path d="M 20 -100 l -12 -2 l 10 -10 z" fill="#fff" />
+        </g>
+      ))}
     </g>
   );
 }
@@ -512,6 +569,22 @@ function memberPose(m, u, T, sc) {
       if (p.bites >= 3) p.food = null;
       break;
     }
+    case 'recoger': {
+      if (ua > 0.3) {
+        const ph = (ua - 0.3) % 2.2, n = Math.floor((ua - 0.3) / 2.2);
+        const down = EZ.settle(seg(ph, 0, 0.5)) * (1 - EZ.settle(seg(ph, 0.6, 1.0)));
+        p.lean = 20 * down;
+        p.rArm = ph < 0.6 ? lerp(-14, -40, down) : lerp(-40, -150, EZ.settle(seg(ph, 0.6, 1.0))) * (1 - EZ.settle(seg(ph, 1.7, 2.1))) + -14 * EZ.settle(seg(ph, 1.7, 2.1));
+        if (ph > 0.55 && ph < 1.8) { p.food = TRASH[(n + m.i) % 4]; p.eyes = 'happy'; }
+      }
+      break;
+    }
+    case 'tirar': {
+      const t0 = a + 0.3, rel = a + 1.0;
+      if (u < rel) { p.food = m.objeto || TRASH[(sc.idx + m.i) % 4]; p.rArm = lerp(-14, 120, EZ.settle(seg(u, t0, rel - 0.15))); }
+      else { const sw = seg(u, rel, rel + 0.25); p.rArm = sw < 1 ? lerp(120, -110, EZ.settle(sw)) : lerp(-110, -14, EZ.settle(seg(u, rel + 0.5, rel + 1.0))); p.lean = 10 * bump(u, rel - 0.1, rel + 0.5); }
+      break;
+    }
     case 'dormir': if (on) { p.eyes = 'sleep'; p.mood = 'sleep'; p.tilt = 10 * EZ.settle(seg(u, a, a + 1)); p.sy *= 1 + 0.03 * Math.sin(T * 1.8); p.rArm = 6; p.lArm = -6; } break;
     case 'reir': if (on && (ua % 3.5) < 2.2) { p.eyes = 'happy'; p.mood = 'laugh'; p.mouth = 0.6 + 0.4 * Math.abs(Math.sin(T * 12)); p.sx *= 1 + 0.03 * Math.sin(T * 24); p.tilt = -6 + 4 * Math.sin(T * 10); p.lArm = 40; } break;
     case 'correr': if (p.moving) { p.lean = 8 * p.dir; p.eyes = p.eyes === 'blink' ? 'blink' : 'happy'; p.rArm = 30 * Math.sin(T * 14); p.lArm = -30 * Math.sin(T * 14); } break;
@@ -545,12 +618,12 @@ function planScene(raw, idx, fmt, age) {
   const n = cast.length;
   const k = n > 3 ? (fmt.id === 'vertical' ? 0.62 : 0.82) : 1;
   const spacing = n > 1 ? Math.min(fmt.spacing, (halfW * 2 * 0.8) / n) : 0;
-  const sc = { idx, lugar: raw.lugar, texto: raw.texto || '', palabra: raw.palabra || '', src: raw.src, kind: raw._title ? 'title' : raw._fin ? 'fin' : 'scene', events: [] };
+  const sc = { idx, lugar: raw.lugar, texto: raw.texto || '', palabra: raw.palabra || '', src: raw.src, kind: raw._title ? 'title' : raw._fin ? 'fin' : 'scene', events: [], basura: raw.basura || 0, sucia: !!raw.sucia, limpiar: !!raw.limpiar, botes: !!raw.botes };
   const ev = (t, s, a) => sc.events.push({ t, s, a });
   const members = cast.map((c, i) => {
     const x = (i - (n - 1) / 2) * spacing;
     const dir = x < -1 ? -1 : 1;
-    return { id: c.id, action: c.accion, entrance: c.entrada, dice: c.dice, hacia: c.hacia, x, k, dir, look: (x < -1 ? 0.45 : x > 1 ? -0.45 : 0) * dir, seed: idx * 1.7 + i * 2.3, tracks: [], i };
+    return { id: c.id, action: c.accion, entrance: c.entrada, dice: c.dice, hacia: c.hacia, objeto: c.objeto, x, k, dir, look: (x < -1 ? 0.45 : x > 1 ? -0.45 : 0) * dir, seed: idx * 1.7 + i * 2.3, tracks: [], i };
   });
   let order = 0;
   members.forEach((m) => {
@@ -626,6 +699,8 @@ function planScene(raw, idx, fmt, age) {
       const R = Math.min(Math.max(spacing * 0.45, 150), 230); let t = a, i = 0, from = x;
       while (t + 1.1 <= end) { const to = x + (i % 2 ? -R : R); m.tracks.push({ t0: t, t1: t + 1.1, x0: from, x1: to, n: 3, h: 38 }); from = to; t += 1.1; i++; }
     }
+    if (m.action === 'tirar') { ev(a + 1.0, 'swish'); ev(a + 1.8, 'pop'); }
+    if (m.action === 'recoger') for (let t = a + 0.3 + 0.9; t < dur - 0.3; t += 2.2) ev(t, 'pop');
     if (m.action === 'asustarse') { m.tracks.push({ t0: a + 0.3, t1: a + 0.85, x0: x, x1: x, n: 1, h: 120 }); ev(a + 0.3, 'boing'); }
     if (m.receiveAt != null) m.tracks.push({ t0: m.receiveAt + 0.1, t1: m.receiveAt + 0.7, x0: x, x1: x, n: 1, h: 60 });
     if (m.action === 'comer') for (let b = 0; b < 3; b++) ev(a + 0.3 + 0.45 + b * 1.6, 'nom');
@@ -777,7 +852,7 @@ function Stall({ x, c1, c2, fruits }) {
     </g>
   );
 }
-function Backdrop({ kind, T, W }) {
+function Backdrop({ kind, T, W, sucia }) {
   const gnd = GROUND[kind] || GROUND.pueblito;
   const ground = (<g><rect x={-W - 400} y="0" width={W * 2 + 800} height="1600" fill={gnd} /><path d={`M ${-W - 400} 0 L ${W + 400} 0`} {...OUT} /></g>);
   const clouds = (c) => (<g><Cloud x={-560 + Math.sin(T * 0.12) * 60} y={-640} s={1} c={c} /><Cloud x={420 - Math.sin(T * 0.1) * 50} y={-700} s={0.85} c={c} /><Cloud x={-150} y={-980} s={0.9} c={c} /><Cloud x={1300} y={-620} s={0.9} c={c} /></g>);
@@ -804,12 +879,12 @@ function Backdrop({ kind, T, W }) {
           <rect x={-W - 400} y="-300" width={W * 2 + 800} height="320" fill="#7ED957" />
           <path d={`M ${-W - 400} -300 L ${W + 400} -300`} {...OUT} />
           {[-1300, -700, 650, 1200].map((tx) => <Tree key={tx} x={tx} s={0.55} fruit={null} />)}
-          <rect x={-W - 400} y="-250" width={W * 2 + 800} height="230" fill="#3FA9F0" />
+          <rect x={-W - 400} y="-250" width={W * 2 + 800} height="230" fill={sucia ? '#8A8F5E' : '#3FA9F0'} />
           <path d={`M ${-W - 400} -250 L ${W + 400} -250`} {...OUT} />
           {[-200, -140, -80].map((wy, j) => (
-            <path key={wy} d={Array.from({ length: 22 }).map((_, q) => `${q ? 'L' : 'M'} ${-W - 300 + q * 140 + ((T * 40 * (j % 2 ? -1 : 1)) % 140)} ${wy + (q % 2 ? 10 : -10)}`).join(' ')} fill="none" stroke="#BDEBFF" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+            <path key={wy} d={Array.from({ length: 22 }).map((_, q) => `${q ? 'L' : 'M'} ${-W - 300 + q * 140 + ((T * 40 * (j % 2 ? -1 : 1)) % 140)} ${wy + (q % 2 ? 10 : -10)}`).join(' ')} fill="none" stroke={sucia ? '#B5B88C' : '#BDEBFF'} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
           ))}
-          {[[-520, -120], [380, -170], [900, -90]].map(([lx, ly]) => <g key={lx} transform={`translate(${lx + Math.sin(T + lx) * 6} ${ly})`}><ellipse rx="50" ry="16" fill="#3FB34F" {...OUT} strokeWidth={5} /><circle cx="10" cy="-8" r="10" fill="#FF6FB5" {...OUT} strokeWidth={4} /></g>)}
+          {[[-520, -120], [380, -170], [900, -90]].map(([lx, ly]) => <g key={lx} transform={`translate(${lx + Math.sin(T + lx) * 6} ${ly})`}><ellipse rx="50" ry="16" fill={sucia ? '#8C8A4A' : '#3FB34F'} {...OUT} strokeWidth={5} />{!sucia && <circle cx="10" cy="-8" r="10" fill="#FF6FB5" {...OUT} strokeWidth={4} />}</g>)}
           <rect x={-W - 400} y="-20" width={W * 2 + 800} height="1600" fill={gnd} />
           <path d={`M ${-W - 400} -20 Q -600 -40 0 -20 T ${W + 400} -20`} fill="none" {...OUT} />
           {[-980, 1000].map((rx) => <g key={rx}><path d={`M ${rx} 0 L ${rx - 10} -120 M ${rx + 20} 0 L ${rx + 30} -140 M ${rx + 44} 0 L ${rx + 48} -100`} stroke="#2E9E44" strokeWidth="10" strokeLinecap="round" /><ellipse cx={rx - 10} cy="-130" rx="10" ry="22" fill="#8B5A3C" {...OUT} strokeWidth={4} /></g>)}
@@ -974,6 +1049,16 @@ function Effects({ sc, u, T, poses }) {
     const p = poses[j], top = charTop(m, p);
     if (m.entrance === 'aparece') out.push(<Burst key={`ap${j}`} cx={m.x} cy={-200 * m.k} t={seg(u, m.enterT0, m.enterT0 + 0.7)} color="#FF6FB5" />);
     const a = m.actStart;
+    if (m.action === 'tirar') {
+      const rel = a + 1.0, fl = seg(u, rel, rel + 0.8), river = sc.lugar === 'rio';
+      if (u >= rel) {
+        const hx = m.x + 60 * m.dir * m.k, hy = -220 * m.k;
+        const tx = clamp(m.x + 380 * m.dir, -sc.halfW + 80, sc.halfW - 80), ty = river ? -130 : 50;
+        const bob = fl >= 1 && river ? Math.sin(T * 1.6) * 6 : 0;
+        out.push(<TrashItem key={`th${j}`} kind={m.objeto || TRASH[(sc.idx + m.i) % 4]} x={lerp(hx, tx, fl)} y={lerp(hy, ty, fl) - Math.sin(fl * Math.PI) * 220 + bob} s={1.1} rot={fl < 1 ? fl * 540 : river ? 70 : 20} />);
+        out.push(<FxBubble key={`pl${j}`} x={tx} y={ty - 150} t={seg(u, rel + 0.75, rel + 1.9)} text={river ? '¡PLAF!' : '¡PAF!'} size={0.65} fill="#9FDcFF" color="#fff" />);
+      }
+    }
     if (m.action === 'comer') out.push(<FxBubble key={`nm${j}`} x={p.x + 150 * p.dir} y={top + 40} t={seg(u, a + 0.7, a + 2.0)} text="¡ÑAM!" size={0.75} fill="#FFD84D" />);
     if (m.action === 'reir') for (let t = a; t < sc.dur - 0.5; t += 3.5) out.push(<FxBubble key={`jj${j}${t}`} x={p.x + 160 * (p.x > 0 ? -1 : 1)} y={top + 20} t={seg(u, t, t + 1.4)} text="¡JA JA!" size={0.7} fill="#7EE0C3" color="#FFD23F" />);
     if (m.action === 'asustarse') {
@@ -1018,7 +1103,9 @@ function SceneWorld({ sc, u, T, fmt, uid }) {
     <g>
       <Sky kind={sc.lugar} fmt={fmt} T={T} id={uid} />
       <g transform={`translate(${fmt.W / 2} ${fmt.GY}) scale(${s})`}>
-        <Backdrop kind={sc.lugar} T={T} W={halfW + 300} />
+        <Backdrop kind={sc.lugar} T={T} W={halfW + 300} sucia={sc.sucia} />
+        {sc.botes && <RecycleBins halfW={halfW} />}
+        <SceneTrash sc={sc} u={u} T={T} />
         {sc.door && (
           <Casita x={sc.door.x} open={open} shake={shake} c={HOUSE_COL[sc.door.col]} id={`door-${uid}`}>
             {dj >= 0 && !poses[dj].hidden && <Character id={sc.members[dj].id} p={Object.assign({}, poses[dj], { y: -(1 - poses[dj].rise) * 420, noShadow: true })} T={T} />}
@@ -1143,5 +1230,5 @@ function StoryPlayer(props) {
   );
 }
 
-Object.assign(window, { StoryPlayer, TC_ENGINE: { sanitizeStory, planStory, IDS, ACTIONS, ENTRIES, PLACES } });
+Object.assign(window, { StoryPlayer, TC_ENGINE: { sanitizeStory, planStory, IDS, ACTIONS, ENTRIES, PLACES, TRASH } });
 })();

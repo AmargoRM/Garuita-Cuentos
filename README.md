@@ -79,3 +79,7 @@ Los resultados quedan en `salida/`. Grabar tarda unas 3 veces la duración del c
 - `accion`: quieto, saltar, caminar, tocar, saludar, hablar, bailar, comer, dormir, reir,
   correr, abrazar, regalo, asustarse.
 - `entrada`: ya, izquierda, derecha, aparece, puerta.
+- Acciones extra: `recoger` (levanta basura) y `tirar` (lanza basura; con `objeto`: botella, lata, bolsa, papel).
+- Opcionales por escena: `basura` (0 a 3), `agua: "sucia"`, `limpiar: true`, `botes: true`.
+
+Nombres, personalidades y estilo fijos de los personajes: ver `PERSONAJES.md`.

@@ -1,0 +1,534 @@
+{
+  "id": "rio-limpio",
+  "titulo": "Tío Conejo y el río limpio",
+  "escenas": [
+    {
+      "lugar": "rio",
+      "texto": "Había una vez un río limpio y cantarín. Tía Tortuga lo cuidaba todos los días.",
+      "palabra": "RÍO",
+      "personajes": [
+        {
+          "id": "tortuga",
+          "accion": "saludar",
+          "entrada": "ya",
+          "dice": "¡Buenos días, río!"
+        }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "texto": "Una mañana, Tío Conejo salió de su casita con muchas ganas de jugar.",
+      "palabra": "CONEJO",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "saltar",
+          "entrada": "izquierda",
+          "dice": "¡Qué día tan lindo!"
+        }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "texto": "En el bosque se encontró a Mono Chito, que comía su merienda.",
+      "palabra": "MONO CHITO",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "caminar",
+          "entrada": "izquierda"
+        },
+        {
+          "id": "mono",
+          "accion": "comer",
+          "entrada": "aparece",
+          "dice": "¡Ñam! ¡Qué rico!"
+        }
+      ]
+    },
+    {
+      "lugar": "rio",
+      "texto": "Mono Chito terminó de comer… ¡y tiró el papel al río!",
+      "palabra": "¡NO!",
+      "personajes": [
+        {
+          "id": "mono",
+          "accion": "tirar",
+          "entrada": "ya",
+          "dice": "¡Que se lo lleve el río!",
+          "objeto": "papel"
+        },
+        {
+          "id": "conejo",
+          "accion": "asustarse",
+          "entrada": "ya"
+        }
+      ]
+    },
+    {
+      "lugar": "rio",
+      "texto": "Tío Conejo le dijo: el río no es un basurero.",
+      "palabra": "¡OJO!",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "hablar",
+          "entrada": "ya",
+          "dice": "¡El río no es basurero!"
+        },
+        {
+          "id": "mono",
+          "accion": "reir",
+          "entrada": "ya",
+          "dice": "¡Es solo un papelito!"
+        }
+      ],
+      "basura": 1
+    },
+    {
+      "lugar": "pueblito",
+      "texto": "Doña Gallina tiró una bolsa vieja en la calle. La lluvia la arrastró hasta el río.",
+      "palabra": "GALLINA",
+      "personajes": [
+        {
+          "id": "gallina",
+          "accion": "tirar",
+          "entrada": "derecha",
+          "dice": "Es solo una bolsita…",
+          "objeto": "bolsa"
+        }
+      ],
+      "basura": 1
+    },
+    {
+      "lugar": "mercado",
+      "texto": "En el mercado, Tío Tigre tiró su lata en el zacate. El viento la llevó al río.",
+      "palabra": "TIGRE",
+      "personajes": [
+        {
+          "id": "tigre",
+          "accion": "tirar",
+          "entrada": "ya",
+          "dice": "Es solo una latita…",
+          "objeto": "lata"
+        }
+      ],
+      "basura": 1
+    },
+    {
+      "lugar": "rio",
+      "texto": "Poquito a poquito, el río se fue llenando de basura.",
+      "palabra": "BASURA",
+      "personajes": [
+        {
+          "id": "tortuga",
+          "accion": "asustarse",
+          "entrada": "ya",
+          "dice": "¡Ay, mi río!"
+        }
+      ],
+      "basura": 2,
+      "agua": "sucia"
+    },
+    {
+      "lugar": "rio",
+      "texto": "El agua se puso oscura. Los peces se escondieron y las flores se marchitaron.",
+      "palabra": "TRISTE",
+      "personajes": [
+        {
+          "id": "tortuga",
+          "accion": "hablar",
+          "entrada": "ya",
+          "dice": "El río está enfermo…"
+        },
+        {
+          "id": "conejo",
+          "accion": "quieto",
+          "entrada": "derecha"
+        }
+      ],
+      "basura": 3,
+      "agua": "sucia"
+    },
+    {
+      "lugar": "noche",
+      "texto": "Esa noche, Tío Conejo no podía dormir. Pensaba y pensaba en el río.",
+      "palabra": "NOCHE",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "hablar",
+          "entrada": "ya",
+          "dice": "¿Qué puedo hacer?"
+        }
+      ]
+    },
+    {
+      "lugar": "noche",
+      "texto": "¡De pronto se le prendió el bombillo!",
+      "palabra": "¡IDEA!",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "saltar",
+          "entrada": "ya",
+          "dice": "¡Ya sé! ¡Tengo una idea!"
+        }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "texto": "Al día siguiente, Tucán Pico voló por todo el pueblo con la noticia.",
+      "palabra": "TUCÁN PICO",
+      "personajes": [
+        {
+          "id": "tucan",
+          "accion": "hablar",
+          "entrada": "aparece",
+          "dice": "¡Todos al río!"
+        },
+        {
+          "id": "conejo",
+          "accion": "saludar",
+          "entrada": "izquierda"
+        }
+      ]
+    },
+    {
+      "lugar": "rio",
+      "texto": "Llegaron Mono Chito, Doña Gallina y Tío Tigre. Nadie entendía qué pasaba.",
+      "palabra": "REUNIÓN",
+      "personajes": [
+        {
+          "id": "mono",
+          "accion": "caminar",
+          "entrada": "izquierda"
+        },
+        {
+          "id": "gallina",
+          "accion": "caminar",
+          "entrada": "derecha"
+        },
+        {
+          "id": "tigre",
+          "accion": "caminar",
+          "entrada": "derecha"
+        }
+      ],
+      "basura": 3,
+      "agua": "sucia"
+    },
+    {
+      "lugar": "rio",
+      "texto": "Tía Tortuga les explicó que de este río todos toman agua.",
+      "palabra": "AGUA",
+      "personajes": [
+        {
+          "id": "tortuga",
+          "accion": "hablar",
+          "entrada": "ya",
+          "dice": "Este río nos da agua a todos."
+        },
+        {
+          "id": "conejo",
+          "accion": "quieto",
+          "entrada": "ya"
+        }
+      ],
+      "basura": 3,
+      "agua": "sucia"
+    },
+    {
+      "lugar": "rio",
+      "texto": "Tío Tigre tenía sed y probó el agua del río.",
+      "palabra": "¡PUAJ!",
+      "personajes": [
+        {
+          "id": "tigre",
+          "accion": "asustarse",
+          "entrada": "ya",
+          "dice": "¡Puaj! ¡Sabe horrible!"
+        }
+      ],
+      "basura": 3,
+      "agua": "sucia"
+    },
+    {
+      "lugar": "rio",
+      "texto": "Mono Chito bajó la cabeza. Se acordó de su papelito.",
+      "palabra": "PERDÓN",
+      "personajes": [
+        {
+          "id": "mono",
+          "accion": "hablar",
+          "entrada": "ya",
+          "dice": "Yo tiré el primer papelito…"
+        },
+        {
+          "id": "tortuga",
+          "accion": "quieto",
+          "entrada": "ya"
+        }
+      ],
+      "basura": 3,
+      "agua": "sucia"
+    },
+    {
+      "lugar": "rio",
+      "texto": "Doña Gallina y Tío Tigre también se acordaron de su bolsa y su lata.",
+      "palabra": "NOSOTROS",
+      "personajes": [
+        {
+          "id": "gallina",
+          "accion": "hablar",
+          "entrada": "ya",
+          "dice": "Y yo la bolsita…"
+        },
+        {
+          "id": "tigre",
+          "accion": "hablar",
+          "entrada": "ya",
+          "dice": "Y yo la latita…"
+        }
+      ],
+      "basura": 3,
+      "agua": "sucia"
+    },
+    {
+      "lugar": "rio",
+      "texto": "Entonces Tío Conejo dijo su gran idea.",
+      "palabra": "¡A LIMPIAR!",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "saltar",
+          "entrada": "ya",
+          "dice": "¡Entre todos lo limpiamos!"
+        },
+        {
+          "id": "mono",
+          "accion": "saludar",
+          "entrada": "ya"
+        }
+      ],
+      "basura": 3,
+      "agua": "sucia"
+    },
+    {
+      "lugar": "rio",
+      "texto": "Tío Conejo y Mono Chito sacaron botellas, latas y papeles.",
+      "palabra": "RECOGER",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "recoger",
+          "entrada": "ya"
+        },
+        {
+          "id": "mono",
+          "accion": "recoger",
+          "entrada": "ya",
+          "dice": "¡Otra botella!"
+        }
+      ],
+      "basura": 3,
+      "agua": "sucia",
+      "limpiar": true
+    },
+    {
+      "lugar": "rio",
+      "texto": "Llegó Danta Lola con su trompita larga y sacó las bolsas del fondo.",
+      "palabra": "DANTA LOLA",
+      "personajes": [
+        {
+          "id": "danta",
+          "accion": "recoger",
+          "entrada": "aparece",
+          "dice": "¡Yo saco las bolsas!"
+        },
+        {
+          "id": "gallina",
+          "accion": "recoger",
+          "entrada": "ya"
+        }
+      ],
+      "basura": 2,
+      "agua": "sucia",
+      "limpiar": true
+    },
+    {
+      "lugar": "rio",
+      "texto": "Hasta Tío Tigre ayudó, con sus patotas grandes.",
+      "palabra": "EQUIPO",
+      "personajes": [
+        {
+          "id": "tigre",
+          "accion": "recoger",
+          "entrada": "ya",
+          "dice": "¡Esto es trabajo en equipo!"
+        },
+        {
+          "id": "conejo",
+          "accion": "recoger",
+          "entrada": "ya"
+        }
+      ],
+      "basura": 1,
+      "agua": "sucia",
+      "limpiar": true
+    },
+    {
+      "lugar": "pueblito",
+      "texto": "Separaron todo en los basureros: plástico, latas y orgánico.",
+      "palabra": "RECICLAR",
+      "personajes": [
+        {
+          "id": "gallina",
+          "accion": "hablar",
+          "entrada": "ya",
+          "dice": "¡Cada cosa en su lugar!"
+        },
+        {
+          "id": "mono",
+          "accion": "recoger",
+          "entrada": "ya"
+        }
+      ],
+      "botes": true
+    },
+    {
+      "lugar": "rio",
+      "texto": "Y entonces… ¡el agua volvió a brillar!",
+      "palabra": "¡LIMPIO!",
+      "personajes": [
+        {
+          "id": "tortuga",
+          "accion": "bailar",
+          "entrada": "ya",
+          "dice": "¡Gracias, amigos!"
+        },
+        {
+          "id": "conejo",
+          "accion": "bailar",
+          "entrada": "ya"
+        }
+      ]
+    },
+    {
+      "lugar": "rio",
+      "texto": "Mariposa Luz llegó volando. ¡Las flores volvieron a abrir!",
+      "palabra": "MARIPOSA LUZ",
+      "personajes": [
+        {
+          "id": "mariposa",
+          "accion": "saludar",
+          "entrada": "aparece",
+          "dice": "¡Qué lindo huele el río!"
+        },
+        {
+          "id": "tortuga",
+          "accion": "reir",
+          "entrada": "ya"
+        }
+      ]
+    },
+    {
+      "lugar": "rio",
+      "texto": "Tío Tigre volvió a probar el agua fresquita.",
+      "palabra": "¡RICO!",
+      "personajes": [
+        {
+          "id": "tigre",
+          "accion": "reir",
+          "entrada": "ya",
+          "dice": "¡Ahora sí sabe rico!"
+        }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "texto": "Desde ese día, Mono Chito guarda su basura hasta encontrar un basurero.",
+      "palabra": "BASURERO",
+      "personajes": [
+        {
+          "id": "mono",
+          "accion": "recoger",
+          "entrada": "ya",
+          "dice": "¡Mi basura, al basurero!"
+        }
+      ],
+      "botes": true
+    },
+    {
+      "lugar": "bosque",
+      "texto": "Y ahora es el guardián del río. Les recuerda a todos que lo cuiden.",
+      "palabra": "GUARDIÁN",
+      "personajes": [
+        {
+          "id": "mono",
+          "accion": "saludar",
+          "entrada": "ya",
+          "dice": "¡Cuidemos el río!"
+        },
+        {
+          "id": "tucan",
+          "accion": "bailar",
+          "entrada": "aparece"
+        }
+      ]
+    },
+    {
+      "lugar": "rio",
+      "texto": "Tía Tortuga sonrió: un poquito de basura de cada uno se vuelve mucha.",
+      "palabra": "ENSEÑANZA",
+      "personajes": [
+        {
+          "id": "tortuga",
+          "accion": "hablar",
+          "entrada": "ya",
+          "dice": "Un río limpio es vida."
+        },
+        {
+          "id": "conejo",
+          "accion": "quieto",
+          "entrada": "ya"
+        }
+      ]
+    },
+    {
+      "lugar": "rio",
+      "texto": "¿Y vos? ¿Qué podés hacer para cuidar el río de tu barrio?",
+      "palabra": "¿Y VOS?",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "saludar",
+          "entrada": "aparece",
+          "dice": "¡Contame en casa!"
+        }
+      ]
+    },
+    {
+      "lugar": "noche",
+      "texto": "Esa noche, todos durmieron felices junto al río limpio y cantarín.",
+      "palabra": "BUENAS NOCHES",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "dormir",
+          "entrada": "ya"
+        },
+        {
+          "id": "mono",
+          "accion": "dormir",
+          "entrada": "ya"
+        },
+        {
+          "id": "tortuga",
+          "accion": "dormir",
+          "entrada": "ya"
+        }
+      ]
+    }
+  ]
+}

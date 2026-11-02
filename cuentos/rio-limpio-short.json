@@ -1,0 +1,135 @@
+{
+  "id": "rio-limpio-short",
+  "titulo": "¡El río no es basurero!",
+  "escenas": [
+    {
+      "lugar": "rio",
+      "texto": "Tía Tortuga cuida su río limpio y cantarín.",
+      "palabra": "RÍO",
+      "personajes": [
+        {
+          "id": "tortuga",
+          "accion": "saludar",
+          "entrada": "ya",
+          "dice": "¡Buenos días, río!"
+        }
+      ]
+    },
+    {
+      "lugar": "rio",
+      "texto": "Mono Chito tiró un papel. Tío Conejo se asustó.",
+      "palabra": "¡NO!",
+      "personajes": [
+        {
+          "id": "mono",
+          "accion": "tirar",
+          "entrada": "ya",
+          "dice": "¡Es solo un papelito!",
+          "objeto": "papel"
+        },
+        {
+          "id": "conejo",
+          "accion": "asustarse",
+          "entrada": "ya"
+        }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "texto": "Doña Gallina tiró una bolsa. Tío Tigre tiró una lata.",
+      "palabra": "¡OTRA VEZ!",
+      "personajes": [
+        {
+          "id": "gallina",
+          "accion": "tirar",
+          "entrada": "ya",
+          "objeto": "bolsa"
+        },
+        {
+          "id": "tigre",
+          "accion": "tirar",
+          "entrada": "ya",
+          "dice": "¡Es solo una latita!",
+          "objeto": "lata"
+        }
+      ],
+      "basura": 1
+    },
+    {
+      "lugar": "rio",
+      "texto": "Todos tiraron solo un poquito… ¡y el río se enfermó!",
+      "palabra": "BASURA",
+      "personajes": [
+        {
+          "id": "tortuga",
+          "accion": "asustarse",
+          "entrada": "ya",
+          "dice": "¡Ay, mi río!"
+        }
+      ],
+      "basura": 3,
+      "agua": "sucia"
+    },
+    {
+      "lugar": "rio",
+      "texto": "Tío Conejo tuvo una idea: ¡limpiarlo entre todos!",
+      "palabra": "¡A LIMPIAR!",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "recoger",
+          "entrada": "ya"
+        },
+        {
+          "id": "mono",
+          "accion": "recoger",
+          "entrada": "ya"
+        },
+        {
+          "id": "danta",
+          "accion": "recoger",
+          "entrada": "ya"
+        }
+      ],
+      "basura": 3,
+      "agua": "sucia",
+      "limpiar": true
+    },
+    {
+      "lugar": "rio",
+      "texto": "¡El agua volvió a brillar! Tu basura, al basurero.",
+      "palabra": "¡LIMPIO!",
+      "personajes": [
+        {
+          "id": "tortuga",
+          "accion": "bailar",
+          "entrada": "ya",
+          "dice": "¡Gracias, amigos!"
+        },
+        {
+          "id": "conejo",
+          "accion": "bailar",
+          "entrada": "ya"
+        },
+        {
+          "id": "mono",
+          "accion": "bailar",
+          "entrada": "ya"
+        }
+      ]
+    },
+    {
+      "lugar": "rio",
+      "texto": "¿Y vos? ¿Cómo cuidás el río de tu barrio?",
+      "palabra": "¿Y VOS?",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "saludar",
+          "entrada": "aparece",
+          "dice": "¡Cuidemos el agua!"
+        }
+      ]
+    }
+  ]
+}
