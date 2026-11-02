@@ -3,6 +3,10 @@
 //   ?formato=vertical      -> 1080×1920 (por defecto horizontal 1920×1080)
 //   ?edad=ninos            -> ritmo para niños (por defecto 'bebes', más lento)
 //   ?captura               -> sin controles, tamaño real, en pausa (para grabar)
+//   ?narracion=no          -> ignora los audios de voz/<cuento>/ aunque existan
+//
+// Si existe voz/<cuento>/duraciones.json (lo crea `npm run voz`), cada escena dura lo
+// mismo que su narración, y window.__garuitaNarracion dice qué audio suena y cuándo.
 import './globales.js';
 import { createRoot } from 'react-dom/client';
 import '@fontsource/fredoka/400.css';
@@ -19,14 +23,37 @@ const formato = q.get('formato') === 'vertical' ? 'vertical' : 'horizontal';
 const edad = q.get('edad') === 'ninos' ? 'ninos' : 'bebes';
 const captura = q.has('captura');
 
+async function cargarNarracion(cuento) {
+  try {
+    const r = await fetch(`voz/${cuento}/duraciones.json`);
+    return r.ok ? await r.json() : null;
+  } catch (e) { return null; }
+}
+
+// Lista de audios con el segundo exacto en que empieza cada uno dentro del video.
+function anotarPlan(plan, narracion) {
+  const lista = [];
+  if (narracion) {
+    plan.scenes.forEach((s) => {
+      if (!s.narr) return;
+      const archivo = s.kind === 'title' ? 'titulo.wav' : `escena-${String(s.src + 1).padStart(2, '0')}.wav`;
+      lista.push({ archivo: `voz/${nombre}/${archivo}`, inicio: Math.round((s.start + s.narr[0]) * 1000) / 1000 });
+    });
+  }
+  window.__garuitaNarracion = lista;
+  window.__garuitaPlan = plan;
+}
+
 async function iniciar() {
   const raiz = createRoot(document.getElementById('app'));
   try {
     const r = await fetch(`cuentos/${nombre}.json`);
     if (!r.ok) throw new Error(`No encontré cuentos/${nombre}.json`);
     const cuento = await r.json();
+    const narracion = q.get('narracion') === 'no' ? null : await cargarNarracion(nombre);
     raiz.render(
       <window.StoryPlayer story={cuento} format={formato} age={edad}
+        narracion={narracion} onPlan={(p) => anotarPlan(p, narracion)}
         sound={!captura} music={!captura} captions={q.get('subtitulos') !== 'no'} />
     );
     await document.fonts.ready;

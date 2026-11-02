@@ -3,12 +3,14 @@
 //   npm run captura -- --cuento ejemplo --formato horizontal --fotos 6
 //       -> salida/ejemplo-horizontal-01.png ... (fotos repartidas en el cuento)
 //   npm run captura -- --cuento ejemplo --formato vertical --video
-//       -> salida/ejemplo-vertical.mp4 (30 cuadros por segundo, todavía sin sonido)
+//       -> salida/ejemplo-vertical.mp4 (30 cuadros por segundo)
 //
+// Si el cuento tiene narración importada (npm run voz), el video sale con esa voz.
 // Opciones: --edad ninos | --fps 30 | --desde 0 --hasta 10 (segundos, para pruebas)
+//           --sin-voz (ignora la narración)
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { crearServidor } from './servidor.mjs';
@@ -26,6 +28,7 @@ const edad = opt('edad', 'bebes');
 const fps = Number(opt('fps', 30));
 const quiereVideo = opt('video', false) === true;
 const fotos = Number(opt('fotos', 6));
+const sinVoz = opt('sin-voz', false) === true;
 const [W, H] = formato === 'vertical' ? [1080, 1920] : [1920, 1080];
 
 if (!fs.existsSync(path.join(raiz, 'publico', 'motor.js'))) {
@@ -37,7 +40,7 @@ fs.mkdirSync(salida, { recursive: true });
 
 const servidor = crearServidor();
 await new Promise((r) => servidor.listen(0, r));
-const url = `http://localhost:${servidor.address().port}/?captura&cuento=${encodeURIComponent(cuento)}&formato=${formato}&edad=${edad}`;
+const url = `http://localhost:${servidor.address().port}/?captura&cuento=${encodeURIComponent(cuento)}&formato=${formato}&edad=${edad}${sinVoz ? '&narracion=no' : ''}`;
 
 const navegador = await chromium.launch();
 const pagina = await navegador.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
@@ -47,13 +50,14 @@ pagina.on('console', (m) => { if (m.type() === 'error') errores.push(m.text()); 
 
 try {
   await pagina.goto(url);
-  await pagina.waitForFunction(() => (window.__garuitaListo && window.__garuita) || window.__garuitaError, null, { timeout: 30000 });
+  await pagina.waitForFunction(() => (window.__garuitaListo && window.__garuita && window.__garuitaNarracion) || window.__garuitaError, null, { timeout: 30000 });
   const err = await pagina.evaluate(() => window.__garuitaError);
   if (err) throw new Error(err);
   const duracion = await pagina.evaluate(() => window.__garuita.duracion);
   const desde = Number(opt('desde', 0));
   const hasta = Math.min(Number(opt('hasta', duracion)), duracion);
-  console.log(`Cuento "${cuento}" (${formato}): ${duracion.toFixed(1)} s`);
+  const narracion = await pagina.evaluate(() => window.__garuitaNarracion);
+  console.log(`Cuento "${cuento}" (${formato}): ${duracion.toFixed(1)} s, ${narracion.length ? `${narracion.length} audios de narración` : 'sin narración'}`);
   const lienzo = pagina.locator('#lienzo');
   const ir = (t) => pagina.evaluate((x) => window.__garuita.ir(x), t);
 
@@ -80,10 +84,30 @@ try {
     }
     ff.stdin.end();
     await termino;
+    const usados = narracion.filter((n) => n.inicio >= desde && n.inicio < hasta);
+    if (usados.length) {
+      process.stdout.write(`\n  agregando ${usados.length} audios de narración`);
+      ponerVoz(archivo, usados, desde, hasta - desde);
+    }
     console.log(`\n  video -> ${path.relative(raiz, archivo)}`);
   }
   if (errores.length) { console.error('Errores en la página:\n  ' + errores.join('\n  ')); process.exitCode = 1; }
 } finally {
   await navegador.close();
   servidor.close();
+}
+
+// Junta el video mudo con cada audio de narración, puesto en su segundo exacto.
+function ponerVoz(archivo, lista, desde, largo) {
+  const temporal = archivo.replace(/\.mp4$/, '.con-voz.mp4');
+  const entradas = lista.flatMap((n) => ['-i', path.join(raiz, n.archivo)]);
+  const pistas = lista.map((n, i) => {
+    const ms = Math.max(0, Math.round((n.inicio - desde) * 1000));
+    return `[${i + 1}:a]aresample=48000,adelay=${ms}:all=1[a${i}]`;
+  });
+  const mezcla = `${pistas.join(';')};${lista.map((_, i) => `[a${i}]`).join('')}amix=inputs=${lista.length}:normalize=0,apad,atrim=0:${largo.toFixed(3)}[voz]`;
+  const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', archivo, ...entradas, '-filter_complex', mezcla,
+    '-map', '0:v', '-map', '[voz]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', temporal], { stdio: 'inherit' });
+  if (r.status !== 0) throw new Error('ffmpeg no pudo agregar la narración');
+  fs.renameSync(temporal, archivo);
 }
