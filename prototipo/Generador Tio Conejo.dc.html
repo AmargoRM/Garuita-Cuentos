@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; background: #FFF6E5; }
+    a { color: #1D5BC0; } a:hover { color: #2A1A12; }
+    textarea, input, select, button { font-family: 'Fredoka', system-ui, sans-serif; }
+  </style>
+</helmet>
+<div style="min-height:100vh;background:#FFF6E5;color:#2A1A12;font-family:'Fredoka',system-ui,sans-serif;display:flex;flex-direction:column;">
+  <header style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;padding:18px 28px;border-bottom:4px solid #2A1A12;background:#FFD23F;">
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      <div style="font-family:'Luckiest Guy',sans-serif;font-size:32px;line-height:1;letter-spacing:0.02em;color:#fff;-webkit-text-stroke:4px #2A1A12;paint-order:stroke fill;text-shadow:0 4px 0 #2A1A12;">CUENTOS DE TÍO CONEJO</div>
+      <div style="font-size:15px;font-weight:500;">Generador de videos animados</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;font-weight:600;font-size:15px;">
+      <span style="background:#fff;border:3px solid #2A1A12;border-radius:999px;padding:6px 14px;">{{ totalLabel }}</span>
+      <span style="background:#fff;border:3px solid #2A1A12;border-radius:999px;padding:6px 14px;">{{ countLabel }}</span>
+    </div>
+  </header>
+
+  <div style="display:flex;flex-wrap:wrap;gap:24px;padding:24px 28px;align-items:flex-start;">
+    <section style="flex:1 1 380px;max-width:560px;min-width:0;display:flex;flex-direction:column;gap:18px;">
+      <div style="background:#fff;border:3px solid #2A1A12;border-radius:20px;box-shadow:0 6px 0 #2A1A12;padding:20px;display:flex;flex-direction:column;gap:14px;">
+        <div style="font-weight:700;font-size:20px;">1. Tu cuento</div>
+        <textarea value="{{ text }}" onChange="{{ onText }}" rows="9" placeholder="Escribí o pegá el cuento aquí…" style="width:100%;box-sizing:border-box;resize:vertical;border:3px solid #2A1A12;border-radius:14px;padding:12px 14px;font-size:16px;line-height:1.45;color:#2A1A12;background:#FFFBF2;outline:none;"></textarea>
+        <div style="display:flex;flex-wrap:wrap;gap:14px 22px;">
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Edad</div>
+            <div style="display:flex;gap:6px;">
+              <sc-for list="{{ ages }}" as="o" hint-placeholder-count="2">
+                <button onClick="{{ o.pick }}" style="border:3px solid #2A1A12;border-radius:999px;padding:7px 14px;font-size:15px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }};">{{ o.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Duración</div>
+            <div style="display:flex;gap:6px;">
+              <sc-for list="{{ mins }}" as="o" hint-placeholder-count="3">
+                <button onClick="{{ o.pick }}" style="border:3px solid #2A1A12;border-radius:999px;padding:7px 14px;font-size:15px;font-weight:600;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }};">{{ o.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <button onClick="{{ onGenerate }}" disabled="{{ loading }}" style="align-self:flex-start;border:3px solid #2A1A12;border-radius:14px;padding:12px 22px;font-size:18px;font-weight:700;cursor:pointer;background:#2F7DEB;color:#fff;box-shadow:0 5px 0 #2A1A12;" style-active="transform:translateY(3px);box-shadow:0 2px 0 #2A1A12;">{{ genLabel }}</button>
+        <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#FFE1E1;border:3px solid #C62828;border-radius:12px;padding:10px 14px;font-size:15px;color:#8E1B1B;">{{ error }}</div>
+        </sc-if>
+        <div style="font-size:14px;line-height:1.4;color:#5A4636;">La IA divide el cuento en escenas, elige personajes y lugares, y suaviza cualquier parte violenta o de miedo.</div>
+      </div>
+
+      <div style="background:#fff;border:3px solid #2A1A12;border-radius:20px;box-shadow:0 6px 0 #2A1A12;padding:20px;display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="font-weight:700;font-size:20px;">2. Escenas</div>
+          <div style="font-size:14px;color:#5A4636;">Título: <input value="{{ titulo }}" onChange="{{ onTitulo }}" style="border:2px solid #2A1A12;border-radius:8px;padding:4px 8px;font-size:14px;width:180px;"></div>
+        </div>
+        <sc-for list="{{ scenes }}" as="s" hint-placeholder-count="3">
+          <div style="border:3px solid #2A1A12;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;background:#FFFBF2;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="width:34px;height:34px;border-radius:50%;background:#FFD23F;border:3px solid #2A1A12;display:flex;align-items:center;justify-content:center;font-weight:700;">{{ s.num }}</span>
+              <select value="{{ s.lugar }}" onChange="{{ s.onLugar }}" style="border:2px solid #2A1A12;border-radius:10px;padding:6px 8px;font-size:15px;background:#fff;">
+                <sc-for list="{{ lugaresOpts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+              </select>
+              <span style="font-size:14px;color:#5A4636;">{{ s.dur }}</span>
+              <div style="margin-left:auto;display:flex;gap:4px;">
+                <button onClick="{{ s.onUp }}" title="Subir" style="border:2px solid #2A1A12;border-radius:8px;background:#fff;width:32px;height:32px;cursor:pointer;font-size:15px;">↑</button>
+                <button onClick="{{ s.onDown }}" title="Bajar" style="border:2px solid #2A1A12;border-radius:8px;background:#fff;width:32px;height:32px;cursor:pointer;font-size:15px;">↓</button>
+                <button onClick="{{ s.onDelete }}" title="Borrar escena" style="border:2px solid #2A1A12;border-radius:8px;background:#FFE1E1;width:32px;height:32px;cursor:pointer;font-size:15px;">✕</button>
+              </div>
+            </div>
+            <textarea value="{{ s.texto }}" onChange="{{ s.onTexto }}" rows="2" placeholder="Subtítulo de la escena" style="width:100%;box-sizing:border-box;resize:vertical;border:2px solid #2A1A12;border-radius:10px;padding:8px 10px;font-size:15px;line-height:1.35;background:#fff;"></textarea>
+            <input value="{{ s.palabra }}" onChange="{{ s.onPalabra }}" placeholder="Palabra grande (opcional), ej. GALLINA" style="border:2px solid #2A1A12;border-radius:10px;padding:7px 10px;font-size:15px;background:#fff;">
+            <sc-for list="{{ s.cast }}" as="c" hint-placeholder-count="1">
+              <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:8px;border-top:2px dashed #E2CFAF;">
+                <select value="{{ c.id }}" onChange="{{ c.onId }}" style="border:2px solid #2A1A12;border-radius:10px;padding:6px;font-size:14px;background:#fff;font-weight:600;">
+                  <sc-for list="{{ personajesOpts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+                </select>
+                <select value="{{ c.accion }}" onChange="{{ c.onAccion }}" style="border:2px solid #2A1A12;border-radius:10px;padding:6px;font-size:14px;background:#fff;">
+                  <sc-for list="{{ accionesOpts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+                </select>
+                <select value="{{ c.entrada }}" onChange="{{ c.onEntrada }}" style="border:2px solid #2A1A12;border-radius:10px;padding:6px;font-size:14px;background:#fff;">
+                  <sc-for list="{{ entradasOpts }}" as="o"><option value="{{ o.v }}">{{ o.l }}</option></sc-for>
+                </select>
+                <input value="{{ c.dice }}" onChange="{{ c.onDice }}" placeholder="Dice… (opcional)" style="flex:1 1 140px;min-width:0;border:2px solid #2A1A12;border-radius:10px;padding:6px 8px;font-size:14px;background:#fff;">
+                <button onClick="{{ c.onRemove }}" title="Quitar personaje" style="border:2px solid #2A1A12;border-radius:8px;background:#fff;width:30px;height:30px;cursor:pointer;">✕</button>
+              </div>
+            </sc-for>
+            <sc-if value="{{ s.canAdd }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ s.onAdd }}" style="align-self:flex-start;border:2px dashed #2A1A12;border-radius:10px;background:transparent;padding:6px 12px;font-size:14px;font-weight:600;cursor:pointer;">+ Personaje</button>
+            </sc-if>
+          </div>
+        </sc-for>
+        <button onClick="{{ onAddScene }}" style="align-self:flex-start;border:3px solid #2A1A12;border-radius:12px;background:#7EE0C3;padding:9px 16px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 0 #2A1A12;">+ Escena</button>
+      </div>
+    </section>
+
+    <section style="flex:2 1 560px;min-width:0;display:flex;flex-direction:column;gap:14px;position:sticky;top:16px;">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+        <sc-for list="{{ formats }}" as="o" hint-placeholder-count="2">
+          <button onClick="{{ o.pick }}" style="border:3px solid #2A1A12;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:700;cursor:pointer;background:{{ o.bg }};color:{{ o.fg }};">{{ o.label }}</button>
+        </sc-for>
+        <button onClick="{{ onFull }}" style="margin-left:auto;border:3px solid #2A1A12;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:700;cursor:pointer;background:#FFD23F;box-shadow:0 4px 0 #2A1A12;">Pantalla completa</button>
+      </div>
+      <sc-if value="{{ showH }}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative;width:100%;aspect-ratio:16/9.4;border:4px solid #2A1A12;border-radius:18px;overflow:hidden;background:#1B1410;box-shadow:0 8px 0 #2A1A12;">
+          <x-import component-from-global-scope="StoryPlayer" from="./animations-v3.jsx ./story-engine.jsx" story="{{ playerStory }}" format="horizontal" age="{{ age }}" sound="{{ sound }}" music="{{ music }}" captions="{{ captions }}" on-plan="{{ onPlan }}" hint-size="100%,100%"></x-import>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showV }}" hint-placeholder-val="{{ false }}">
+        <div style="position:relative;height:min(78vh,860px);aspect-ratio:9/16.8;margin:0 auto;max-width:100%;border:4px solid #2A1A12;border-radius:18px;overflow:hidden;background:#1B1410;box-shadow:0 8px 0 #2A1A12;">
+          <x-import component-from-global-scope="StoryPlayer" from="./animations-v3.jsx ./story-engine.jsx" story="{{ playerStory }}" format="vertical" age="{{ age }}" sound="{{ sound }}" music="{{ music }}" captions="{{ captions }}" on-plan="{{ onPlan }}" hint-size="100%,100%"></x-import>
+        </div>
+      </sc-if>
+      <div style="font-size:14px;line-height:1.45;color:#5A4636;max-width:720px;">Para descargar el video: Compartir → Exportar → Video. El archivo sale en el formato elegido arriba (1920×1080 o 1080×1920). El video exportado sale sin sonido; agregalo grabando la pantalla o en un editor.</div>
+    </section>
+  </div>
+
+  <sc-if value="{{ full }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:50;background:#1B1410;">
+      <x-import component-from-global-scope="StoryPlayer" from="./animations-v3.jsx ./story-engine.jsx" story="{{ playerStory }}" format="{{ format }}" age="{{ age }}" sound="{{ sound }}" music="{{ music }}" captions="{{ captions }}" on-plan="{{ onPlan }}" hint-size="100%,100%"></x-import>
+      <button onClick="{{ onExitFull }}" style="position:absolute;left:12px;top:12px;z-index:60;border:3px solid #2A1A12;border-radius:999px;background:#fff;padding:6px 14px;font-size:14px;font-weight:600;cursor:pointer;opacity:0.85;">✕ Salir (Esc)</button>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;sonido&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;musica&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;subtitulos&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const LS_KEY = 'tc-generador-v1';
+const PERSONAJES = [['conejo', 'Tío Conejo'], ['cucaracha', 'Cucaracha'], ['gallina', 'Gallina'], ['zorra', 'Zorra'], ['coyote', 'Coyote'], ['tigre', 'Tío Tigre'], ['tortuga', 'Tortuga'], ['mono', 'Mono'], ['danta', 'Danta'], ['perezoso', 'Perezoso'], ['tucan', 'Tucán'], ['vaca', 'Vaca'], ['perro', 'Perro'], ['gato', 'Gato'], ['mariposa', 'Mariposa']];
+const ACCIONES = [['quieto', 'Quieto'], ['saltar', 'Saltar'], ['caminar', 'Caminar'], ['tocar', 'Tocar la puerta'], ['saludar', 'Saludar'], ['hablar', 'Hablar'], ['bailar', 'Bailar'], ['comer', 'Comer'], ['dormir', 'Dormir'], ['reir', 'Reír'], ['correr', 'Correr'], ['abrazar', 'Abrazar'], ['regalo', 'Dar regalo'], ['asustarse', 'Asustarse']];
+const ENTRADAS = [['ya', 'Ya está'], ['izquierda', 'Entra por la izquierda'], ['derecha', 'Entra por la derecha'], ['aparece', 'Aparece (¡pum!)'], ['puerta', 'Sale por la puerta']];
+const LUGARES = [['pueblito', 'Pueblito'], ['bosque', 'Bosque'], ['rio', 'Río'], ['playa', 'Playa'], ['mercado', 'Mercado'], ['casa', 'Adentro de la casa'], ['noche', 'Noche con luna']];
+const opts = (l) => l.map(([v, lab]) => ({ v, l: lab }));
+
+const SAMPLE_TEXT = 'Tío Conejo sale de su casita. ¡Qué día tan bonito! Va a la casa de la Gallina y toca la puerta: tun, tun. La Gallina sale y lo saluda. Juntos van al bosque, donde el Mono se ríe con ellos. En el río saludan a la Tortuga, que va despacito. En el mercado, la Vaca les ofrece fruta y Tío Conejo come una zanahoria. En la playa bailan el Tucán y el Perro. De pronto aparece Tío Tigre… ¡pero solo quiere jugar! Tío Conejo le da un regalo y Tío Tigre le da un abrazo. Llega la noche y todos se van a dormir.';
+const SAMPLE = {
+  id: 'muestra-1', titulo: 'Tío Conejo y sus amigos',
+  escenas: [
+    { lugar: 'pueblito', texto: 'Tío Conejo sale de su casita. ¡Qué día tan bonito!', palabra: 'CONEJO', personajes: [{ id: 'conejo', accion: 'saltar', entrada: 'izquierda', dice: '¡Hola, amiguitos!' }] },
+    { lugar: 'pueblito', texto: 'Tun, tun. ¿Quién vive en esta casita?', palabra: 'GALLINA', personajes: [{ id: 'conejo', accion: 'tocar', entrada: 'ya' }, { id: 'gallina', accion: 'saludar', entrada: 'puerta', dice: '¡Co-co! ¡Hola, Conejo!' }] },
+    { lugar: 'bosque', texto: 'En el bosque, el Mono se ríe con ellos.', palabra: 'MONO', personajes: [{ id: 'conejo', accion: 'caminar', entrada: 'izquierda' }, { id: 'mono', accion: 'reir', entrada: 'aparece', dice: '¡Ja, ja! ¡Hola!' }, { id: 'gallina', accion: 'caminar', entrada: 'derecha' }] },
+    { lugar: 'rio', texto: 'En el río está la Tortuga. Va despacito.', palabra: 'TORTUGA', personajes: [{ id: 'tortuga', accion: 'saludar', entrada: 'ya', dice: 'Voy despacito…' }, { id: 'conejo', accion: 'saludar', entrada: 'derecha' }] },
+    { lugar: 'mercado', texto: 'En el mercado, la Vaca tiene fruta rica.', palabra: 'VACA', personajes: [{ id: 'vaca', accion: 'hablar', entrada: 'ya', dice: '¡Muuu! ¿Quieren fruta?' }, { id: 'conejo', accion: 'comer', entrada: 'izquierda' }] },
+    { lugar: 'playa', texto: 'En la playa bailan el Tucán y el Perro.', palabra: 'BAILAR', personajes: [{ id: 'tucan', accion: 'bailar', entrada: 'aparece' }, { id: 'perro', accion: 'bailar', entrada: 'izquierda', dice: '¡Guau, guau!' }, { id: 'gato', accion: 'saludar', entrada: 'derecha' }] },
+    { lugar: 'bosque', texto: '¡Uy! Aparece Tío Tigre… ¡pero solo quiere jugar!', palabra: 'TIGRE', personajes: [{ id: 'conejo', accion: 'asustarse', entrada: 'ya' }, { id: 'tigre', accion: 'reir', entrada: 'aparece', dice: '¡No se asusten! ¡Quiero jugar!' }] },
+    { lugar: 'casa', texto: 'Tío Conejo le da un regalo a Tío Tigre.', palabra: 'REGALO', personajes: [{ id: 'conejo', accion: 'regalo', entrada: 'izquierda', hacia: 'tigre' }, { id: 'tigre', accion: 'quieto', entrada: 'ya', dice: '¡Gracias, amigo!' }] },
+    { lugar: 'casa', texto: 'Y Tío Tigre le da un abrazo grandote.', palabra: 'ABRAZO', personajes: [{ id: 'tigre', accion: 'abrazar', entrada: 'ya', hacia: 'conejo' }, { id: 'conejo', accion: 'quieto', entrada: 'ya' }] },
+    { lugar: 'noche', texto: 'Llega la noche. Todos a dormir. ¡Buenas noches!', palabra: 'NOCHE', personajes: [{ id: 'perezoso', accion: 'dormir', entrada: 'ya' }, { id: 'conejo', accion: 'dormir', entrada: 'izquierda' }, { id: 'tortuga', accion: 'dormir', entrada: 'ya' }] },
+  ],
+};
+
+function sysPrompt(age, minutes) {
+  const n = minutes === 1 ? 8 : minutes === 2 ? 14 : 20;
+  const ageRule = age === 'ninos'
+    ? 'Público: niños de 3 a 6 años. Frases sencillas de hasta 14 palabras. Diálogos cortos.'
+    : 'Público: bebés de 1 a 2 años. Frases muy cortas (máximo 8 palabras), repetición, onomatopeyas (tun tun, co-co, muuu).';
+  return `Sos un guionista de dibujos animados infantiles en español (Costa Rica, tono cálido). Convertís un cuento en escenas para un animador con personajes fijos.
+${ageRule}
+Generá alrededor de ${n} escenas. Siempre final feliz. Suavizá toda violencia, engaño cruel, muerte o miedo: transformalo en algo amable (sorpresa suave, juego, compartir, pedir perdón). Nunca nada oscuro.
+Personajes disponibles (usá solo estos ids; si el cuento tiene otro animal, elegí el más parecido): conejo (Tío Conejo, protagonista), cucaracha, gallina, zorra, coyote, tigre (Tío Tigre), tortuga, mono, danta, perezoso, tucan, vaca, perro, gato, mariposa.
+Lugares: pueblito, bosque, rio, playa, mercado, casa (adentro de una casa), noche.
+Acciones: quieto, saltar, caminar, tocar (tocar la puerta), saludar, hablar, bailar, comer, dormir, reir, correr, abrazar, regalo (dar un regalo), asustarse (sorpresa suave).
+Entradas: ya (ya está en escena), izquierda, derecha, aparece (aparece de golpe), puerta (sale por una puerta; solo si otro personaje de la escena hace "tocar").
+Reglas: 1 a 3 personajes por escena. "abrazar" y "regalo" necesitan "hacia" con el id de otro personaje de la misma escena. "dice" es opcional, máximo 6 palabras. "palabra" es una palabra clave en MAYÚSCULAS (normalmente el nombre del animal que aparece) o "". "texto" es el subtítulo que narra la escena.
+Respondé SOLO con JSON válido, sin texto extra, con esta forma:
+{"titulo":"…","escenas":[{"lugar":"bosque","texto":"…","palabra":"MONO","personajes":[{"id":"conejo","accion":"caminar","entrada":"izquierda","dice":"","hacia":""}]}]}`;
+}
+function extractJSON(txt) {
+  const a = txt.indexOf('{'), b = txt.lastIndexOf('}');
+  if (a < 0 || b < a) throw new Error('sin JSON');
+  return JSON.parse(txt.slice(a, b + 1));
+}
+const fmtTime = (t) => { t = Math.round(t || 0); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+class Component extends DCLogic {
+  state = (() => {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
+    const base = { text: SAMPLE_TEXT, age: 'bebes', minutes: 2, format: 'horizontal', story: SAMPLE };
+    const s = Object.assign(base, saved || {});
+    return Object.assign(s, { playerStory: s.story, loading: false, error: '', full: false, info: null });
+  })();
+
+  componentDidMount() {
+    this._key = (e) => { if (e.key === 'Escape' && this.state.full) this.setState({ full: false }); };
+    window.addEventListener('keydown', this._key);
+    this.save();
+  }
+  save() {
+    const s = this.state;
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ text: s.text, age: s.age, minutes: s.minutes, format: s.format, story: s.story })); } catch (e) {}
+  }
+  componentWillUnmount() { window.removeEventListener('keydown', this._key); clearTimeout(this._t); }
+  componentDidUpdate(pp, ps) {
+    const s = this.state;
+    if (s.text !== ps.text || s.age !== ps.age || s.minutes !== ps.minutes || s.format !== ps.format || s.story !== ps.story) {
+      this.save();
+    }
+  }
+
+  edit(fn) {
+    const story = clone(this.state.story);
+    fn(story);
+    this.setState({ story });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ playerStory: this.state.story }), 600);
+  }
+  editScene(i, patch) { this.edit((st) => Object.assign(st.escenas[i], patch)); }
+  editCast(i, j, patch) { this.edit((st) => Object.assign(st.escenas[i].personajes[j], patch)); }
+
+  async generate() {
+    const text = (this.state.text || '').trim();
+    if (text.length < 20) { this.setState({ error: 'Escribí un cuento un poco más largo.' }); return; }
+    if (!window.claude || !window.claude.complete) { this.setState({ error: 'La IA no está disponible en esta vista.' }); return; }
+    this.setState({ loading: true, error: '' });
+    try {
+      const out = await window.claude.complete({ max_tokens: 8000, system: sysPrompt(this.state.age, this.state.minutes), messages: [{ role: 'user', content: 'Cuento:\n' + text }] });
+      const raw = extractJSON(out);
+      const eng = window.TC_ENGINE;
+      const story = eng ? eng.sanitizeStory(raw) : raw;
+      if (!story.escenas || !story.escenas.length) throw new Error('vacío');
+      story.id = 'gen-' + Date.now();
+      clearTimeout(this._t);
+      this.setState({ story, playerStory: story, loading: false });
+    } catch (e) {
+      this.setState({ loading: false, error: 'No se pudieron crear las escenas. Probá de nuevo.' });
+    }
+  }
+
+  onPlan = (info) => {
+    if (JSON.stringify(info) !== JSON.stringify(this.state.info)) this.setState({ info });
+  };
+
+  renderVals() {
+    const s = this.state, st = s.story || { escenas: [] };
+    const durBySrc = {};
+    if (s.info) s.info.scenes.forEach((x) => { if (x.kind === 'scene') durBySrc[x.src] = x.dur; });
+    const pill = (on) => ({ bg: on ? '#2F7DEB' : '#fff', fg: on ? '#fff' : '#2A1A12' });
+    const n = st.escenas.length;
+    return {
+      text: s.text, onText: (e) => this.setState({ text: e.target.value }),
+      ages: [['bebes', 'Bebés 1–2'], ['ninos', 'Niños 3–6']].map(([v, l]) => Object.assign({ label: l, pick: () => this.setState({ age: v }) }, pill(s.age === v))),
+      mins: [1, 2, 3].map((v) => Object.assign({ label: v + ' min', pick: () => this.setState({ minutes: v }) }, pill(s.minutes === v))),
+      formats: [['horizontal', 'Horizontal 16:9 · YouTube'], ['vertical', 'Vertical 9:16 · Shorts']].map(([v, l]) => Object.assign({ label: l, pick: () => this.setState({ format: v }) }, pill(s.format === v))),
+      loading: s.loading, genLabel: s.loading ? 'Creando escenas…' : 'Crear escenas con IA', onGenerate: () => this.generate(),
+      error: s.error,
+      titulo: st.titulo || '', onTitulo: (e) => this.edit((x) => { x.titulo = e.target.value; }),
+      totalLabel: s.info ? 'Duración ' + fmtTime(s.info.total) : 'Duración —',
+      countLabel: n + (n === 1 ? ' escena' : ' escenas'),
+      lugaresOpts: opts(LUGARES), personajesOpts: opts(PERSONAJES), accionesOpts: opts(ACCIONES), entradasOpts: opts(ENTRADAS),
+      scenes: st.escenas.map((e, i) => ({
+        num: i + 1, lugar: e.lugar, texto: e.texto || '', palabra: e.palabra || '',
+        dur: durBySrc[i] != null ? durBySrc[i].toFixed(1) + ' s' : '',
+        onLugar: (ev) => this.editScene(i, { lugar: ev.target.value }),
+        onTexto: (ev) => this.editScene(i, { texto: ev.target.value }),
+        onPalabra: (ev) => this.editScene(i, { palabra: ev.target.value.toUpperCase() }),
+        onUp: () => i > 0 && this.edit((x) => { const a = x.escenas; [a[i - 1], a[i]] = [a[i], a[i - 1]]; }),
+        onDown: () => i < n - 1 && this.edit((x) => { const a = x.escenas; [a[i + 1], a[i]] = [a[i], a[i + 1]]; }),
+        onDelete: () => this.edit((x) => { x.escenas.splice(i, 1); }),
+        canAdd: (e.personajes || []).length < 3,
+        onAdd: () => this.edit((x) => { x.escenas[i].personajes.push({ id: 'conejo', accion: 'saludar', entrada: 'aparece', dice: '' }); }),
+        cast: (e.personajes || []).map((c, j) => ({
+          id: c.id, accion: c.accion, entrada: c.entrada, dice: c.dice || '',
+          onId: (ev) => this.editCast(i, j, { id: ev.target.value }),
+          onAccion: (ev) => this.editCast(i, j, { accion: ev.target.value }),
+          onEntrada: (ev) => this.editCast(i, j, { entrada: ev.target.value }),
+          onDice: (ev) => this.editCast(i, j, { dice: ev.target.value }),
+          onRemove: () => this.edit((x) => { x.escenas[i].personajes.splice(j, 1); }),
+        })),
+      })),
+      onAddScene: () => this.edit((x) => { x.escenas.push({ lugar: 'pueblito', texto: '', palabra: '', personajes: [{ id: 'conejo', accion: 'saludar', entrada: 'ya', dice: '' }] }); }),
+      playerStory: s.playerStory, age: s.age, format: s.format,
+      sound: this.props.sonido ?? true, music: this.props.musica ?? true, captions: this.props.subtitulos ?? true,
+      onPlan: this.onPlan,
+      showH: !s.full && s.format === 'horizontal', showV: !s.full && s.format === 'vertical', full: s.full,
+      onFull: () => this.setState({ full: true }), onExitFull: () => this.setState({ full: false }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
