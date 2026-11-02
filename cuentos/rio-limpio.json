@@ -1,10 +1,10 @@
 {
   "id": "rio-limpio",
-  "titulo": "Tío Conejo y el río limpio",
+  "titulo": "Conejo Chepe y el río limpio",
   "escenas": [
     {
       "lugar": "rio",
-      "texto": "Había una vez un río limpio y cantarín. Tía Tortuga lo cuidaba todos los días.",
+      "texto": "Había una vez un río limpio y cantarín. Tortuga Tula lo cuidaba todos los días.",
       "palabra": "RÍO",
       "personajes": [
         {
@@ -17,7 +17,7 @@
     },
     {
       "lugar": "pueblito",
-      "texto": "Una mañana, Tío Conejo salió de su casita con muchas ganas de jugar.",
+      "texto": "Una mañana, Conejo Chepe salió de su casita con muchas ganas de jugar.",
       "palabra": "CONEJO",
       "personajes": [
         {
@@ -67,7 +67,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Tío Conejo le dijo: el río no es un basurero.",
+      "texto": "Conejo Chepe le dijo: el río no es un basurero.",
       "palabra": "¡OJO!",
       "personajes": [
         {
@@ -87,7 +87,7 @@
     },
     {
       "lugar": "pueblito",
-      "texto": "Doña Gallina tiró una bolsa vieja en la calle. La lluvia la arrastró hasta el río.",
+      "texto": "Gallina Clota tiró una bolsa vieja en la calle. La lluvia la arrastró hasta el río.",
       "palabra": "GALLINA",
       "personajes": [
         {
@@ -102,7 +102,7 @@
     },
     {
       "lugar": "mercado",
-      "texto": "En el mercado, Tío Tigre tiró su lata en el zacate. El viento la llevó al río.",
+      "texto": "En el mercado, Tigre Bruno tiró su lata en el zacate. El viento la llevó al río.",
       "palabra": "TIGRE",
       "personajes": [
         {
@@ -152,7 +152,7 @@
     },
     {
       "lugar": "noche",
-      "texto": "Esa noche, Tío Conejo no podía dormir. Pensaba y pensaba en el río.",
+      "texto": "Esa noche, Conejo Chepe no podía dormir. Pensaba y pensaba en el río.",
       "palabra": "NOCHE",
       "personajes": [
         {
@@ -196,7 +196,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Llegaron Mono Chito, Doña Gallina y Tío Tigre. Nadie entendía qué pasaba.",
+      "texto": "Llegaron Mono Chito, Gallina Clota y Tigre Bruno. Nadie entendía qué pasaba.",
       "palabra": "REUNIÓN",
       "personajes": [
         {
@@ -220,7 +220,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Tía Tortuga les explicó que de este río todos toman agua.",
+      "texto": "Tortuga Tula les explicó que de este río todos toman agua.",
       "palabra": "AGUA",
       "personajes": [
         {
@@ -240,7 +240,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Tío Tigre tenía sed y probó el agua del río.",
+      "texto": "Tigre Bruno tenía sed y probó el agua del río.",
       "palabra": "¡PUAJ!",
       "personajes": [
         {
@@ -275,7 +275,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Doña Gallina y Tío Tigre también se acordaron de su bolsa y su lata.",
+      "texto": "Gallina Clota y Tigre Bruno también se acordaron de su bolsa y su lata.",
       "palabra": "NOSOTROS",
       "personajes": [
         {
@@ -296,7 +296,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Entonces Tío Conejo dijo su gran idea.",
+      "texto": "Entonces Conejo Chepe dijo su gran idea.",
       "palabra": "¡A LIMPIAR!",
       "personajes": [
         {
@@ -316,7 +316,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Tío Conejo y Mono Chito sacaron botellas, latas y papeles.",
+      "texto": "Conejo Chepe y Mono Chito sacaron botellas, latas y papeles.",
       "palabra": "RECOGER",
       "personajes": [
         {
@@ -358,7 +358,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Hasta Tío Tigre ayudó, con sus patotas grandes.",
+      "texto": "Hasta Tigre Bruno ayudó, con sus patotas grandes.",
       "palabra": "EQUIPO",
       "personajes": [
         {
@@ -434,7 +434,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Tío Tigre volvió a probar el agua fresquita.",
+      "texto": "Tigre Bruno volvió a probar el agua fresquita.",
       "palabra": "¡RICO!",
       "personajes": [
         {
@@ -479,7 +479,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Tía Tortuga sonrió: un poquito de basura de cada uno se vuelve mucha.",
+      "texto": "Tortuga Tula sonrió: un poquito de basura de cada uno se vuelve mucha.",
       "palabra": "ENSEÑANZA",
       "personajes": [
         {

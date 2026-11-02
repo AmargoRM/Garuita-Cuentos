@@ -4,7 +4,7 @@
   "escenas": [
     {
       "lugar": "rio",
-      "texto": "Tía Tortuga cuida su río limpio y cantarín.",
+      "texto": "Tortuga Tula cuida su río limpio y cantarín.",
       "palabra": "RÍO",
       "personajes": [
         {
@@ -17,7 +17,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Mono Chito tiró un papel. Tío Conejo se asustó.",
+      "texto": "Mono Chito tiró un papel. Conejo Chepe se asustó.",
       "palabra": "¡NO!",
       "personajes": [
         {
@@ -36,7 +36,7 @@
     },
     {
       "lugar": "pueblito",
-      "texto": "Doña Gallina tiró una bolsa. Tío Tigre tiró una lata.",
+      "texto": "Gallina Clota tiró una bolsa. Tigre Bruno tiró una lata.",
       "palabra": "¡OTRA VEZ!",
       "personajes": [
         {
@@ -72,7 +72,7 @@
     },
     {
       "lugar": "rio",
-      "texto": "Tío Conejo tuvo una idea: ¡limpiarlo entre todos!",
+      "texto": "Conejo Chepe tuvo una idea: ¡limpiarlo entre todos!",
       "palabra": "¡A LIMPIAR!",
       "personajes": [
         {

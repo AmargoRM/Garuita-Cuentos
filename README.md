@@ -1,6 +1,6 @@
 # Garuita Cuentos
 
-Motor para generar cuentos animados de Tío Conejo con enseñanzas y temas ambientales,
+Motor para generar cuentos animados de Conejo Chepe con enseñanzas y temas ambientales,
 para YouTube: videos largos horizontales (1920×1080) y Shorts verticales (1080×1920).
 
 - `PLAN.md`: plan completo, opciones de voz, derechos de autor y riesgos.
@@ -58,7 +58,7 @@ Los resultados quedan en `salida/`. Grabar tarda unas 3 veces la duración del c
 ```json
 {
   "id": "ejemplo",
-  "titulo": "Tío Conejo y sus amigos",
+  "titulo": "Conejo Chepe y sus amigos",
   "escenas": [
     {
       "lugar": "rio",

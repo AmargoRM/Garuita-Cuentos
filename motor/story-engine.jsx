@@ -1,4 +1,4 @@
-// Tío Conejo — motor de cuentos. Plans a story JSON into timed scenes and
+// Garuita Cuentos — motor de cuentos. Plans a story JSON into timed scenes and
 // renders them on the CompositionStage of motor/escenario.jsx (horizontal or vertical).
 (function () {
 const INK = '#2A1A12';
@@ -38,7 +38,7 @@ function normAct(s) {
 }
 function sanitizeStory(st) {
   st = st || {};
-  const out = { id: st.id || 'x', titulo: String(st.titulo || 'Tío Conejo').slice(0, 40), escenas: [] };
+  const out = { id: st.id || 'x', titulo: String(st.titulo || 'Conejo Chepe').slice(0, 40), escenas: [] };
   (Array.isArray(st.escenas) ? st.escenas : []).forEach((e) => {
     if (!e) return;
     const lugar = PLACES[norm(e.lugar)] ? norm(e.lugar) : 'pueblito';
