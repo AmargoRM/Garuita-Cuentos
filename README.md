@@ -70,7 +70,15 @@ npm run voz -- --cuento NOMBRE --zip NOMBRE-voz.zip
 
 Esto deja los audios en `voz/NOMBRE/` con `duraciones.json`. Desde ahí, cada escena dura
 lo que dura su narración (nunca menos) y `npm run captura -- --video` sale con la voz.
-Para grabar sin voz: `--sin-voz`. Los audios no se suben a GitHub (el repositorio es público).
+Para grabar sin voz: `--sin-voz`.
+
+Sin Colab (por ejemplo en la nube de Claude, si permite bajar de huggingface.co):
+
+```bash
+pip install chatterbox-tts==0.1.7 && pip uninstall -y torchvision
+python herramientas/narrar.py --cuento NOMBRE --voz ruta/mi_voz.ogg
+npm run voz -- --cuento NOMBRE --carpeta salida/narracion/NOMBRE
+``` Los audios no se suben a GitHub (el repositorio es público).
 
 ## Formato de un cuento
 
