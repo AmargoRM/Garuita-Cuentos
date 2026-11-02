@@ -80,6 +80,19 @@ python herramientas/narrar.py --cuento NOMBRE --voz ruta/mi_voz.ogg
 npm run voz -- --cuento NOMBRE --carpeta salida/narracion/NOMBRE
 ``` Los audios no se suben a GitHub (el repositorio es público).
 
+## Música de fondo y efectos de sonido
+
+Todo video grabado con `--video` sale con:
+
+- **Música de fondo original**, compuesta por el motor (`motor/musica.js`): alegre, para
+  niños, distinta en cada cuento y sin derechos de autor de terceros (ver `musica/LICENCIAS.md`).
+  Baja sola mientras habla el narrador y sube en las pausas. De noche suena una cajita de música.
+- **Los efectos de sonido** del motor (saltos, risas, "boing", soniditos de los animales).
+- Volumen general parejo al nivel que usa YouTube.
+
+Opciones: `--sin-musica`, `--sin-efectos`, `--volumen-musica 0.7` (más bajo) o `1.4` (más alto).
+La música y los efectos quedan también por separado en `salida/` (`.musica.wav`, `.efectos.wav`).
+
 ## Formato de un cuento
 
 ```json
