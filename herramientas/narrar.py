@@ -8,7 +8,7 @@
 Necesita: pip install chatterbox-tts==0.1.7 (y quitar torchvision si choca),
 acceso a huggingface.co para bajar el modelo, y FFmpeg.
 Sin tarjeta gráfica funciona, pero lento (unos minutos por escena).
-Ajustes por defecto: los que eligió Amargo (expresividad 0.85, ritmo 0.5).
+Ajustes por defecto: expresividad 1.0 y ritmo 0.35 (Amargo pidió narración más animada que su voz normal).
 """
 import argparse, json, os, re, subprocess, sys, tempfile
 
@@ -39,8 +39,8 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--cuento", required=True)
     p.add_argument("--voz", required=True, help="grabación de 10 a 15 s (mp3, wav, ogg...)")
-    p.add_argument("--expresividad", type=float, default=0.85)
-    p.add_argument("--ritmo", type=float, default=0.5)
+    p.add_argument("--expresividad", type=float, default=1.0)
+    p.add_argument("--ritmo", type=float, default=0.35)
     p.add_argument("--salida", default=None)
     a = p.parse_args()
 
