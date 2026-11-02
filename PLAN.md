@@ -79,8 +79,7 @@ Tío Conejo original es un pícaro que engaña. Para que haya enseñanza sin per
 - Usa su astucia **para resolver un problema ambiental** (engaña al que contamina).
 - O hace una trampa y **aprende de las consecuencias**.
 
-Nota de derechos: los cuentos de Carmen Lyra (fallecida en 1949) están en dominio público
-en Costa Rica, y Tío Conejo es un personaje del folclor. Los cuentos nuevos son originales.
+Todos los cuentos son **originales**; ver la sección 7 sobre derechos de autor.
 
 Temas ambientales actuales con sabor costarricense:
 - Plástico en la playa y tortugas que confunden bolsas con medusas.
@@ -124,7 +123,38 @@ respetar al diferente, cumplir la palabra, no burlarse.
 4. **Costo de la IA del guion**: la API de Claude cuesta centavos de dólar por cuento.
    Alternativa gratuita: un modelo local con Ollama, con menor calidad en español.
 
-## 7. Más ideas
+## 7. Derechos de autor: reglas del motor
+
+Objetivo: que ningún video reciba reclamos de Content ID ni denuncias. Reglas fijas:
+
+1. **Textos**: Tío Conejo, Tío Tigre, Tía Zorra, etc. son personajes del folclor
+   (vienen de cuentos africanos y afroamericanos), libres de usar. Los libros de Carmen Lyra
+   (fallecida en 1949) son de dominio público en Costa Rica desde 2020, **pero no en todos
+   los países** (en México, por ejemplo, siguen protegidos hasta 2049), y las ediciones
+   modernas con ilustraciones o notas sí tienen dueño. Por eso:
+   - No se copian textos de Carmen Lyra ni de ningún libro. Ni frases enteras.
+   - No se adaptan sus tramas una por una: se inventan tramas nuevas.
+   - La instrucción a la IA prohíbe reproducir cuentos existentes, y un paso automático
+     compara cada guion con textos conocidos y lo rechaza si se parece demasiado.
+   - El texto completo de "Tío Conejo comerciante" se quitó del repositorio.
+2. **Dibujos**: los personajes se dibujan con el código propio del motor. No se imitan
+   diseños de Disney (su "Br'er Rabbit"), Pocoyó, Peppa Pig ni otras series.
+3. **Música y efectos**: solo música propia, generada con licencia comercial clara o de la
+   Biblioteca de Audio de YouTube. Nada descargado "gratis" de sitios sin licencia.
+   Se guarda en `musica/LICENCIAS.md` de dónde salió cada pista.
+4. **Voces**: solo voces de personas que dieron su permiso por escrito, y modelos de voz
+   con licencia comercial (Chatterbox: MIT). Cada voz de Piper trae su propia licencia;
+   revisarla antes de usarla.
+5. **Tipografías**: Luckiest Guy y Fredoka (Google Fonts) permiten uso comercial.
+6. **Código de Claude Design**: `prototipo/support.js` y los archivos `.dc.html` dependen de
+   Claude Design. Mientras el repositorio sea público conviene reemplazarlos en la Fase 0
+   por código propio, o mantener el repositorio privado.
+7. **Datos ambientales**: se pueden usar datos reales, pero con palabras propias y citando
+   la fuente en la descripción del video (SINAC, MINAE, ONU).
+8. **Nombre del canal**: antes de crecer, revisar que "Garuita Cuentos" no esté registrado
+   como marca por otra persona (Registro Nacional de Costa Rica).
+
+## 8. Más ideas
 
 - **Narradora fija "Tía Panchita"** que abre y cierra cada cuento: da identidad al canal.
 - **Pregunta final** para los niños ("¿Qué hubieras hecho vos?") para que los papás conversen.
