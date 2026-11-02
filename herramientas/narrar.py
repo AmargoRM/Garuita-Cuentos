@@ -5,10 +5,12 @@
     npm run voz -- --cuento rio-limpio-short --carpeta salida/narracion/rio-limpio-short
         -> voz/rio-limpio-short/ + duraciones.json (lo usa el motor)
 
-Necesita: pip install chatterbox-tts==0.1.7 (y quitar torchvision si choca),
+Necesita: pip install chatterbox-tts==0.1.7 "setuptools<81" (y quitar torchvision si choca),
 acceso a huggingface.co para bajar el modelo, y FFmpeg.
 Sin tarjeta gráfica funciona, pero lento (unos minutos por escena).
-Ajustes por defecto: expresividad 1.0 y ritmo 0.35 (Amargo pidió narración más animada que su voz normal).
+Ajustes por defecto (versión "E" que eligió Amargo): expresividad 0.6 y ritmo 0.5.
+La grabación de referencia se limpia antes de usarla (sin silencio inicial, sin ruido,
+volumen parejo sin saturar) y a cada audio se le quitan los silencios del principio y del final.
 """
 import argparse, json, os, re, subprocess, sys, tempfile
 
@@ -18,6 +20,10 @@ import torch
 from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Las grabaciones de WhatsApp vienen saturadas y con ruido: el modelo copia eso y suena raro.
+LIMPIAR_REFERENCIA = "silenceremove=start_periods=1:start_threshold=-40dB,highpass=f=70,afftdn=nf=-30,loudnorm=I=-20:TP=-3"
+# Quita el silencio del principio y del final de cada audio narrado.
+RECORTAR = "silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse"
 
 
 def trozos(texto, largo=250):
@@ -39,8 +45,8 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--cuento", required=True)
     p.add_argument("--voz", required=True, help="grabación de 10 a 15 s (mp3, wav, ogg...)")
-    p.add_argument("--expresividad", type=float, default=1.0)
-    p.add_argument("--ritmo", type=float, default=0.35)
+    p.add_argument("--expresividad", type=float, default=0.6)
+    p.add_argument("--ritmo", type=float, default=0.5)
     p.add_argument("--salida", default=None)
     a = p.parse_args()
 
@@ -54,7 +60,7 @@ def main():
     carpeta = a.salida or os.path.join(RAIZ, "salida", "narracion", nombre)
     os.makedirs(carpeta, exist_ok=True)
     referencia = os.path.join(tempfile.mkdtemp(), "voz.wav")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", a.voz, "-ac", "1", "-ar", "24000", "-t", "15", referencia], check=True)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", a.voz, "-af", LIMPIAR_REFERENCIA, "-ac", "1", "-ar", "24000", "-t", "15", referencia], check=True)
 
     dispositivo = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Cargando Chatterbox en {dispositivo}...", flush=True)
@@ -74,7 +80,9 @@ def main():
                 partes.append(pausa)
             partes.append(wav.squeeze(0).numpy().astype(np.float32))
         sf.write(destino + ".tmp.wav", np.concatenate(partes), modelo.sr)
-        os.replace(destino + ".tmp.wav", destino)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", destino + ".tmp.wav", "-af", RECORTAR, destino + ".rec.wav"], check=True)
+        os.remove(destino + ".tmp.wav")
+        os.replace(destino + ".rec.wav", destino)
     print(f"Listo: {os.path.relpath(carpeta, RAIZ)}")
     print(f"Siguiente: npm run voz -- --cuento {nombre} --carpeta {os.path.relpath(carpeta, RAIZ)}")
 
