@@ -123,3 +123,17 @@ La música y los efectos quedan también por separado en `salida/` (`.musica.wav
 - Opcionales por escena: `basura` (0 a 3), `agua: "sucia"`, `limpiar: true`, `botes: true`.
 
 Nombres, personalidades y estilo fijos de los personajes: ver `PERSONAJES.md`.
+
+### Estilo adulto (otro canal, NO para niños)
+
+Con `"estilo": "adulto"` en el cuento, el motor cambia a contorno negro, colores apagados, letras
+Bangers, subtítulos negros, sin cachetes rosados, música de marcha en tono menor y la etiqueta
+"SÁTIRA · +18". Nunca mezclar este estilo con el elenco ni el canal de Garuita.
+
+- Personajes: lora, toro, iguana, buho, pato (caricaturas, sin parecido a personas reales).
+- Lugares: zapote (Casa Presidencial), oficina, corte.
+- Acciones: `aprieta` (botón rojo; con `"falla": true` no hace nada) y `volar` (sale disparado por el techo).
+- Objeto: `tratado` (pila de papeles en la mano).
+- Opcionales por escena: `boton: true`, `hojas: true` (llueven papeles), `explosion: true`.
+
+Los guiones adultos no se guardan en este repositorio (es público y de la marca infantil).

@@ -77,11 +77,13 @@
   // ── Composición ─────────────────────────────────────────────────────────
   const PROGRESIONES = [[0, 4, 5, 3], [0, 3, 4, 0], [0, 5, 3, 4], [3, 0, 4, 0], [0, 3, 0, 4], [5, 3, 0, 4]];
   const MAYOR = [0, 2, 4, 5, 7, 9, 11];
+  const MENOR = [0, 2, 3, 5, 7, 8, 10];
+  let ESCALA = MAYOR;
   const RITMOS = [[0, 2, 4, 6], [0, 1, 2, 4, 6], [0, 3, 4, 6], [0, 2, 3, 4], [0, 4, 6], [0, 2, 4], [0, 2, 4, 5, 6], [0, 6]];
   const RASGUEO = [[0, 1, 0.55], [2, 1, 0.5], [3, -1, 0.35], [5, -1, 0.4], [6, 1, 0.5], [7, -1, 0.3]]; // [octavo, dirección, fuerza]
 
   // Grado de la escala (puede ser negativo o pasar de 7) -> nota MIDI.
-  const grado = (tonica, g) => tonica + 12 * Math.floor(g / 7) + MAYOR[((g % 7) + 7) % 7];
+  const grado = (tonica, g) => tonica + 12 * Math.floor(g / 7) + ESCALA[((g % 7) + 7) % 7];
   const acorde = (tonica, g) => [grado(tonica, g), grado(tonica, g + 2), grado(tonica, g + 4)];
 
   function componer(clave) {
@@ -120,8 +122,11 @@
   }
 
   // Dibuja toda la música del video. `noche(t)` dice si en el segundo t es de noche.
-  function musica(ctx, destino, { clave, largo, noche }) {
+  // adulto: marcha en tono menor, tipo "noticiero de escándalo" (para la sátira, no para niños).
+  function musica(ctx, destino, { clave, largo, noche, adulto }) {
+    ESCALA = adulto ? MENOR : MAYOR;
     const m = componer(clave);
+    if (adulto) { m.bpm = 116; m.tonica -= 3; }
     const pulso = 60 / m.bpm, octavo = pulso / 2, compas = pulso * 4;
     const wet = sala(ctx), gw = ctx.createGain(); gw.gain.value = 0.22; wet.connect(gw); gw.connect(destino);
     const bus = ctx.createGain(); bus.gain.value = 1; bus.connect(destino); bus.connect(wet);
@@ -134,6 +139,14 @@
       const prog = forma === 'B' ? m.pB : m.pA, frase = forma === 'B' ? m.fraseB : m.fraseA;
       const ac = acorde(m.tonica, prog[enBloque]);
       const raiz = grado(m.tonica, prog[enBloque]) - 24;
+      if (adulto) {
+        // Bajo "um-pa", acordes cortos en el 2 y el 4, redoblante de marcha.
+        tocar(ctx, bus, 'bajo', raiz, t0, 0.38); tocar(ctx, bus, 'bajo', raiz + 7, t0 + 2 * pulso, 0.32);
+        [1, 3].forEach((b) => ac.forEach((n, i) => tocar(ctx, bus, 'marimba', n, t0 + b * pulso + i * 0.008, 0.07, -0.2)));
+        [0, 1, 2, 3, 4, 5, 6, 7].forEach((k) => tocar(ctx, bus, 'palo', 0, t0 + k * octavo, k % 4 === 0 ? 0.07 : 0.035, 0.1));
+        if (forma !== 'L') frase[enBloque].forEach(([p, g]) => tocar(ctx, bus, 'uke', grado(m.tonica, g) - 12, t0 + p * octavo, 0.2, 0.25));
+        continue;
+      }
       if (noche(t0 + 0.1)) {
         // Noche: cajita de música en arpegio lento y bajo largo.
         [0, 1, 2, 1].forEach((k, i) => tocar(ctx, bus, 'caja', ac[k] + 12, t0 + i * pulso, 0.10, i % 2 ? 0.3 : -0.3));
@@ -203,7 +216,7 @@
       const ctx = new OfflineAudioContext(2, Math.ceil(fin * SR), SR);
       const master = ctx.createGain(), duck = ctx.createGain();
       master.connect(duck); duck.connect(ctx.destination);
-      const { m } = musica(ctx, master, { clave: plan.key || 'garuita', largo: fin, noche: (t) => escenaEn(t).lugar === 'noche' });
+      const { m } = musica(ctx, master, { clave: plan.key || 'garuita', largo: fin, adulto: plan.estilo === 'adulto', noche: (t) => escenaEn(t).lugar === 'noche' });
       bajarConVoz(duck.gain, tramosVoz.map(([a, b]) => [a + desde, b + desde]));
       // Entra suave al principio y se apaga suave al final.
       master.gain.setValueAtTime(0, 0); master.gain.linearRampToValueAtTime(1, 1.2);

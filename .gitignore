@@ -8,3 +8,5 @@ publico/fuentes/
 voz/*/
 
 __pycache__/
+cuentos/*-adulto*.json
+cuentos/boton-rojo*.json

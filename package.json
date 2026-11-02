@@ -10,6 +10,7 @@
     "voz": "node herramientas/voz.mjs"
   },
   "dependencies": {
+    "@fontsource/bangers": "5.2.8",
     "@fontsource/fredoka": "5.2.8",
     "@fontsource/luckiest-guy": "5.2.8",
     "react": "18.3.1",

@@ -1,10 +1,19 @@
 // Tío Conejo — motor de cuentos. Plans a story JSON into timed scenes and
 // renders them on the CompositionStage of motor/escenario.jsx (horizontal or vertical).
 (function () {
-const INK = '#2A1A12';
+let INK = '#2A1A12';
 const OUT = { stroke: INK, strokeWidth: 6, strokeLinejoin: 'round', strokeLinecap: 'round' };
-const FD = "'Luckiest Guy', 'Fredoka', system-ui, sans-serif";
+let FD = "'Luckiest Guy', 'Fredoka', system-ui, sans-serif";
 const FT = "'Fredoka', system-ui, sans-serif";
+// Estilo "adulto" (cuentos para otro canal, NO para niños): contorno negro, colores apagados,
+// sin cachetes rosados, ojos con párpado caído y letras Bangers. Se elige con "estilo": "adulto".
+let ADULTO = false;
+function ponerEstilo(estilo) {
+  ADULTO = estilo === 'adulto';
+  INK = ADULTO ? '#0E0E10' : '#2A1A12';
+  OUT.stroke = INK;
+  FD = ADULTO ? "'Bangers', 'Fredoka', system-ui, sans-serif" : "'Luckiest Guy', 'Fredoka', system-ui, sans-serif";
+}
 const lerp = (a, b, t) => a + (b - a) * t;
 const seg = (u, a, b) => clamp((u - a) / (b - a), 0, 1);
 const bump = (u, a, b) => Math.sin(seg(u, a, b) * Math.PI);
@@ -17,13 +26,16 @@ const FMT = {
   vertical: { id: 'vertical', W: 1080, H: 1920, GY: 1290, s: 1.32, spacing: 245, cap: { size: 56, bottom: 330, maxW: 940 }, ban: { size: 118, top: 200, chars: 10 }, bub: 42 },
 };
 
-const IDS = ['conejo', 'cucaracha', 'gallina', 'zorra', 'coyote', 'tigre', 'tortuga', 'mono', 'danta', 'perezoso', 'tucan', 'vaca', 'perro', 'gato', 'mariposa'];
-const ACTIONS = ['quieto', 'saltar', 'caminar', 'tocar', 'saludar', 'hablar', 'bailar', 'comer', 'dormir', 'reir', 'correr', 'abrazar', 'regalo', 'asustarse', 'recoger', 'tirar'];
+const IDS = ['conejo', 'cucaracha', 'gallina', 'zorra', 'coyote', 'tigre', 'tortuga', 'mono', 'danta', 'perezoso', 'tucan', 'vaca', 'perro', 'gato', 'mariposa',
+  // Elenco del estilo adulto (sátira): no se usa en Garuita.
+  'lora', 'toro', 'iguana', 'buho', 'pato'];
+const ACTIONS = ['quieto', 'saltar', 'caminar', 'tocar', 'saludar', 'hablar', 'bailar', 'comer', 'dormir', 'reir', 'correr', 'abrazar', 'regalo', 'asustarse', 'recoger', 'tirar', 'aprieta', 'volar'];
 const TRASH = ['botella', 'lata', 'bolsa', 'papel'];
+const OBJETOS = TRASH.concat(['tratado']);
 const ENTRIES = ['ya', 'izquierda', 'derecha', 'aparece', 'puerta'];
-const PLACES = { pueblito: 'Pueblito', bosque: 'Bosque', rio: 'Río', playa: 'Playa', mercado: 'Mercado', casa: 'Casa', noche: 'Noche' };
+const PLACES = { pueblito: 'Pueblito', bosque: 'Bosque', rio: 'Río', playa: 'Playa', mercado: 'Mercado', casa: 'Casa', noche: 'Noche', zapote: 'Zapote', oficina: 'Oficina', corte: 'Corte' };
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-const ALIAS = { zorro: 'zorra', tapir: 'danta', perezosa: 'perezoso', gallo: 'gallina', perrito: 'perro', gatito: 'gato', mona: 'mono', tigresa: 'tigre', toro: 'vaca' };
+const ALIAS = { zorro: 'zorra', tapir: 'danta', perezosa: 'perezoso', gallo: 'gallina', perrito: 'perro', gatito: 'gato', mona: 'mono', tigresa: 'tigre', lechuza: 'buho', pata: 'pato' };
 function normId(s) { const n = norm(s); return IDS.find((id) => n.includes(id)) || ALIAS[Object.keys(ALIAS).find((k) => n.includes(k))] || null; }
 function normAct(s) {
   const n = norm(s);
@@ -33,12 +45,14 @@ function normAct(s) {
   if (n.startsWith('toc')) return 'tocar';
   if (n.startsWith('recog') || n.startsWith('limpi') || n.startsWith('junt')) return 'recoger';
   if (n.startsWith('tir') || n.startsWith('bota')) return 'tirar';
+  if (n.startsWith('aprie') || n.startsWith('boton')) return 'aprieta';
+  if (n.startsWith('vol') || n.startsWith('expuls')) return 'volar';
   if (n.startsWith('ri') || n.startsWith('re')) return n.startsWith('reg') ? 'regalo' : 'reir';
   return ACTIONS.find((a) => n.startsWith(a.slice(0, 4))) || 'quieto';
 }
 function sanitizeStory(st) {
   st = st || {};
-  const out = { id: st.id || 'x', titulo: String(st.titulo || 'Tío Conejo').slice(0, 40), escenas: [] };
+  const out = { id: st.id || 'x', titulo: String(st.titulo || 'Tío Conejo').slice(0, 40), estilo: norm(st.estilo) === 'adulto' ? 'adulto' : 'garuita', escenas: [] };
   (Array.isArray(st.escenas) ? st.escenas : []).forEach((e) => {
     if (!e) return;
     const lugar = PLACES[norm(e.lugar)] ? norm(e.lugar) : 'pueblito';
@@ -46,7 +60,8 @@ function sanitizeStory(st) {
     let cast = (Array.isArray(e.personajes) ? e.personajes : []).map((c) => ({
       id: normId(c && c.id), accion: normAct(c && c.accion), entrada: ENTRIES.includes(norm(c && c.entrada)) ? norm(c.entrada) : 'ya',
       dice: String((c && c.dice) || '').slice(0, 60), hacia: normId(c && c.hacia),
-      objeto: TRASH.includes(norm(c && c.objeto)) ? norm(c.objeto) : null,
+      objeto: OBJETOS.includes(norm(c && c.objeto)) ? norm(c.objeto) : null,
+      falla: !!(c && c.falla),                                  // aprieta: el botón no hace nada
     })).filter((c) => c.id && !seen.has(c.id) && seen.add(c.id)).slice(0, 3);
     let door = false;
     cast.forEach((c) => { if (c.entrada === 'puerta') { if (door) c.entrada = 'aparece'; door = true; } });
@@ -57,6 +72,10 @@ function sanitizeStory(st) {
       sucia: norm(e.agua) === 'sucia',                          // agua del río color lodo
       limpiar: !!e.limpiar,                                     // la basura va desapareciendo durante la escena
       botes: !!e.botes,                                         // tres basureros de reciclaje
+      // Opcionales del estilo adulto:
+      boton: !!e.boton,                                         // el primer personaje tiene el botón rojo al lado
+      hojas: !!e.hojas,                                         // llueven hojas de papel cuando alguien sale volando
+      explosion: !!e.explosion,                                 // ¡BUUUM! al empezar la escena
     });
   });
   return out;
@@ -69,6 +88,8 @@ const VOICES = {
   tortuga: { f: 300, t: 'sine', slow: 1 }, mono: { f: 720, t: 'triangle' }, danta: { f: 220, t: 'triangle', lp: 900 },
   perezoso: { f: 260, t: 'sine', slow: 1 }, tucan: { f: 840, t: 'triangle' }, vaca: { f: 210, t: 'sawtooth', lp: 800, g: 0.07 },
   perro: { f: 440, t: 'triangle' }, gato: { f: 760, t: 'sine' }, mariposa: { f: 1250, t: 'sine', g: 0.06 },
+  lora: { f: 900, t: 'square', lp: 2600, g: 0.05 }, toro: { f: 150, t: 'sawtooth', lp: 700, g: 0.08 }, iguana: { f: 480, t: 'triangle' },
+  buho: { f: 330, t: 'sine', slow: 1 }, pato: { f: 600, t: 'square', lp: 1800, g: 0.05 },
 };
 const SFX = {
   ctx: null, listeners: new Set(), buf: null,
@@ -129,6 +150,10 @@ const SFX = {
       case 'boing': this.tone({ f: 200, f2: 700, dur: 0.25, gain: 0.12, vib: 30 }); break;
       case 'chime': this.tone({ f: 1047, dur: 0.6, gain: 0.06 }); this.tone({ f: 1568, dur: 0.7, gain: 0.04, delay: 0.08 }); break;
       case 'swish': this.noise({ dur: 0.35, gain: 0.05, lp: 2500 }); break;
+      case 'clic': this.tone({ f: 1800, f2: 900, dur: 0.05, type: 'square', gain: 0.08 }); this.tone({ f: 160, f2: 110, dur: 0.1, type: 'triangle', gain: 0.18 }); break;
+      case 'fiuum': this.tone({ f: 300, f2: 2400, dur: 0.9, gain: 0.1, vib: 20 }); this.noise({ dur: 0.6, gain: 0.08, lp: 3000 }); break;
+      case 'boom': this.noise({ dur: 1.6, gain: 0.5, lp: 260 }); this.noise({ dur: 0.5, gain: 0.25, lp: 1500 }); this.tone({ f: 90, f2: 35, dur: 1.4, type: 'sawtooth', gain: 0.22, lp: 300 }); break;
+      case 'nada': this.tone({ f: 330, f2: 220, dur: 0.5, type: 'triangle', gain: 0.08 }); break;
       case 'voz': this.voice(a.id, a.n); break;
     }
   },
@@ -156,7 +181,7 @@ function Arm({ x, y, rot, len, w, fill, hand, hr }) {
     </g>
   );
 }
-function EyeX({ x, y, r, mode, look }) {
+function EyeX({ x, y, r, mode, look, lid }) {
   if (mode === 'blink' || mode === 'sleep') return <path d={`M ${x - r} ${y} Q ${x} ${y + r * 0.7} ${x + r} ${y}`} fill="none" {...OUT} />;
   if (mode === 'happy') return <path d={`M ${x - r} ${y + 5} Q ${x} ${y - r * 0.9} ${x + r} ${y + 5}`} fill="none" {...OUT} />;
   const wide = mode === 'wide', R = wide ? r * 1.22 : r, pr = wide ? 0.42 : 0.64;
@@ -167,6 +192,7 @@ function EyeX({ x, y, r, mode, look }) {
       <circle cx={px} cy={py} r={R * pr} fill={INK} />
       <circle cx={px - R * 0.24} cy={py - R * 0.26} r={R * 0.24} fill="#fff" />
       <circle cx={px + R * 0.2} cy={py + R * 0.2} r={R * 0.1} fill="#fff" />
+      {lid && !wide && <path d={`M ${x - R - 3} ${y - 1} A ${R + 3} ${R + 3} 0 0 1 ${x + R + 3} ${y - 1} Z`} fill={lid} {...OUT} strokeWidth={5} />}
     </g>
   );
 }
@@ -186,7 +212,7 @@ function MouthX({ x, y, w, p }) {
   );
 }
 const talking = (p) => p.mouth > 0.08 || p.mood === 'o' || p.mood === 'laugh';
-const Cheeks = ({ y, dx, c }) => (<g opacity="0.6"><ellipse cx={-dx} cy={y} rx="14" ry="9" fill={c || '#FF7FA0'} /><ellipse cx={dx} cy={y} rx="14" ry="9" fill={c || '#FF7FA0'} /></g>);
+const Cheeks = ({ y, dx, c }) => ADULTO ? null : (<g opacity="0.6"><ellipse cx={-dx} cy={y} rx="14" ry="9" fill={c || '#FF7FA0'} /><ellipse cx={dx} cy={y} rx="14" ry="9" fill={c || '#FF7FA0'} /></g>);
 const Tri = ({ d, fill, sw }) => <path d={d} fill={fill} {...OUT} strokeWidth={sw || 6} />;
 const Bow = ({ x, y, c, s = 1 }) => (
   <g transform={`translate(${x} ${y}) scale(${s})`}>
@@ -410,6 +436,104 @@ const SPECIES = {
     },
     top: (p, T) => <Antennae T={T} p={p} y={-278} tip="#FFD84D" />,
   },
+
+  // ── Elenco del estilo adulto (sátira política). Caricaturas, sin parecido a personas reales. ──
+  // Presidenta Lora: lora verde con banda presidencial (azul, blanco, rojo).
+  lora: {
+    fur: '#3DAA4A', furS: '#2A8236', belly: '#D9E86A', bellyS: '#BCCB4C', feet: '#8C8C8C', feetS: '#6A6A6A', wing: true, tall: 330, lid: '#2A8236',
+    g: { headRx: 70, headRy: 64, bellyRy: 52, bellyCy: -100 },
+    deco: () => (
+      <g>
+        <path d="M -62 -168 L 62 -40" stroke={INK} strokeWidth="46" strokeLinecap="round" />
+        <path d="M -62 -168 L 62 -40" stroke="#1F3FA8" strokeWidth="36" strokeLinecap="butt" />
+        <path d="M -62 -168 L 62 -40" stroke="#FFFFFF" strokeWidth="24" strokeLinecap="butt" />
+        <path d="M -62 -168 L 62 -40" stroke="#D21F2C" strokeWidth="12" strokeLinecap="butt" />
+        <circle cx="40" cy="-62" r="14" fill="#E8B923" {...OUT} strokeWidth={4} />
+      </g>
+    ),
+    top: () => (<g>{[-26, -6, 14].map((x, j) => <path key={j} d={`M ${x} -276 Q ${x - 14} -330 ${x + 6 + j * 4} -342 Q ${x + 10} -306 ${x + 14} -276 Z`} fill={['#D21F2C', '#F2C230', '#1F3FA8'][j]} {...OUT} strokeWidth={5} />)}</g>),
+    face: (p) => {
+      const o = talking(p) ? 0.3 + 0.7 * Math.abs(p.mouth) : 0;
+      return (
+        <g>
+          <path d={`M -18 ${-196 + o * 10} Q 0 ${-150 + o * 14} 20 ${-184 + o * 10} Z`} fill="#3A3A3A" {...OUT} strokeWidth={5} />
+          <path d="M -26 -214 Q 4 -226 30 -204 Q 30 -170 6 -160 Q 10 -186 -26 -196 Z" fill="#F2E3C2" {...OUT} strokeWidth={5} />
+        </g>
+      );
+    },
+  },
+  // Expresidente Toro: toro oscuro, cachos, argolla en la nariz y corbata.
+  toro: {
+    fur: '#5B3A29', furS: '#3E2619', belly: '#7A5240', bellyS: '#5E3D2E', size: 1.12, tall: 340, lid: '#3E2619', hand: '#2A1A12', feet: '#2A1A12', feetS: '#120A06',
+    g: { headRx: 84, headRy: 66, bodyRx: 82 },
+    ears: () => [-1, 1].map((s) => (
+      <g key={s}>
+        <path d={`M ${70 * s} -262 Q ${120 * s} -270 ${132 * s} -322 Q ${104 * s} -288 ${62 * s} -282 Z`} fill="#EFE3C8" {...OUT} strokeWidth={5} />
+        <ellipse cx={92 * s} cy={-226} rx="24" ry="12" fill="#5B3A29" transform={`rotate(${15 * s} ${92 * s} -226)`} {...OUT} strokeWidth={5} />
+      </g>
+    )),
+    headDeco: () => <path d="M -30 -284 Q -14 -300 0 -284 Q 14 -300 30 -284" fill="none" {...OUT} strokeWidth={6} />,
+    face: (p) => (
+      <g>
+        <Blob cx={0} cy={-190} rx={50} ry={32} fill="#B98B74" shade="#9A6E58" hi={false} />
+        <ellipse cx="-16" cy="-196" rx="7" ry="9" fill={INK} /><ellipse cx="16" cy="-196" rx="7" ry="9" fill={INK} />
+        <circle cx="0" cy="-166" r="16" fill="none" stroke="#E8B923" strokeWidth="7" />
+        {talking(p) && <MouthX x={0} y={-178} w={34} p={p} />}
+      </g>
+    ),
+    deco: () => (<g><path d="M -22 -176 L 22 -176 L 12 -158 L -12 -158 Z" fill="#B3121D" {...OUT} strokeWidth={4} /><path d="M -12 -158 L 12 -158 L 22 -60 L 0 -40 L -22 -60 Z" fill="#B3121D" {...OUT} strokeWidth={4} /></g>),
+  },
+  // Ministra Iguana: iguana verde con espinas, anteojos y saco.
+  iguana: {
+    fur: '#8CC152', furS: '#6A9B38', body: '#4B5A73', bodyS: '#353F52', belly: '#F2F2F2', bellyS: '#D6D6D6', hand: '#8CC152', tall: 320, lid: '#6A9B38',
+    g: { headRx: 76, headRy: 58, bellyRx: 26 },
+    back: (p, T) => <Tail d={`M 40 -40 Q 150 -20 ${170 + Math.sin(T * 2) * 10} -110`} fill="#8CC152" w={20} />,
+    top: () => (<g>{[-40, -14, 12, 38].map((x, j) => <path key={j} d={`M ${x - 12} -270 L ${x} -${304 + (j % 2) * 8} L ${x + 12} -270 Z`} fill="#F2A33A" {...OUT} strokeWidth={4} />)}</g>),
+    face: (p) => (
+      <g>
+        <circle cx="-30" cy="-228" r="24" fill="none" {...OUT} strokeWidth={5} /><circle cx="30" cy="-228" r="24" fill="none" {...OUT} strokeWidth={5} />
+        <path d="M -6 -230 L 6 -230" {...OUT} strokeWidth={5} />
+        <circle cx="-8" cy="-200" r="3.5" fill={INK} /><circle cx="8" cy="-200" r="3.5" fill={INK} />
+        <MouthX x={0} y={-186} w={40} p={p} />
+        <path d="M 40 -170 Q 56 -150 42 -136" fill="#E25B4B" {...OUT} strokeWidth={4} />
+      </g>
+    ),
+    deco: () => <path d="M -26 -170 L 0 -120 L 26 -170" fill="none" {...OUT} strokeWidth={5} />,
+  },
+  // Fiscal Búho: búho café, anteojos redondos, muy tranquilo.
+  buho: {
+    fur: '#8A6A4A', furS: '#6A4E34', belly: '#E8D7B8', bellyS: '#CDB894', feet: '#E2A23A', feetS: '#B97F1E', wing: true, tall: 320, lid: '#6A4E34',
+    g: { headRx: 84, headRy: 66, eyeR: 22, eyeDX: 34 },
+    ears: () => [-1, 1].map((s) => <Tri key={s} d={`M ${-70 * s} -250 L ${-74 * s} -312 L ${-34 * s} -276 Z`} fill="#8A6A4A" />),
+    headDeco: () => (<g><circle cx="-34" cy="-236" r="34" fill="#E8D7B8" /><circle cx="34" cy="-236" r="34" fill="#E8D7B8" /></g>),
+    face: (p) => {
+      const o = talking(p) ? 0.3 + 0.7 * Math.abs(p.mouth) : 0;
+      return (
+        <g>
+          <circle cx="-34" cy="-236" r="30" fill="none" stroke="#222" strokeWidth="6" /><circle cx="34" cy="-236" r="30" fill="none" stroke="#222" strokeWidth="6" />
+          <path d="M -4 -236 L 4 -236" stroke="#222" strokeWidth="6" />
+          <path d={`M -14 -206 L 14 -206 L 0 ${-180 + o * 8} Z`} fill="#E2A23A" {...OUT} strokeWidth={5} />
+        </g>
+      );
+    },
+    deco: () => <path d="M -40 -120 Q -20 -110 0 -120 Q 20 -110 40 -120 M -34 -90 Q -16 -80 0 -90 Q 16 -80 34 -90" fill="none" {...OUT} strokeWidth={5} opacity="0.5" />,
+  },
+  // Pato funcionario: el viceministro/vicecanciller de turno (corbata y maletín).
+  pato: {
+    fur: '#F4F1E8', furS: '#D3CEC0', body: '#3C4A5E', bodyS: '#2A3444', belly: '#FFFFFF', bellyS: '#DADADA', feet: '#F29A2E', feetS: '#C97A16', wing: true, tall: 300, lid: '#D3CEC0',
+    g: { bellyRx: 24 },
+    face: (p) => {
+      const o = talking(p) ? 0.3 + 0.7 * Math.abs(p.mouth) : 0;
+      return (
+        <g>
+          <ellipse cx="0" cy={-188 + o * 6} rx="40" ry="14" fill="#E07B12" {...OUT} strokeWidth={5} />
+          <ellipse cx="0" cy="-200" rx="44" ry="15" fill="#F29A2E" {...OUT} strokeWidth={5} />
+        </g>
+      );
+    },
+    deco: () => (<g><path d="M -10 -176 L 10 -176 L 16 -80 L 0 -64 L -16 -80 Z" fill="#E2B13A" {...OUT} strokeWidth={4} /></g>),
+    top: () => <path d="M -6 -262 Q 4 -296 22 -290" fill="none" {...OUT} strokeWidth={6} />,
+  },
 };
 Object.values(SPECIES).forEach((s) => { s.g = Object.assign({}, G0, s.g || {}); s.body = s.body || s.fur; s.bodyS = s.bodyS || s.furS; s.size = s.size || 1; });
 
@@ -424,6 +548,14 @@ function Food({ kind, x, y, left }) {
       {kind === 'maiz' && (<g><ellipse cx="0" cy="-6" rx="14" ry="30" fill="#FFD23F" {...OUT} strokeWidth={5} /><path d="M -14 10 Q -22 30 -6 34 M 14 10 Q 22 30 6 34" fill="#7ED957" {...OUT} strokeWidth={4} /></g>)}
       {kind === 'lechuga' && <circle cx="0" cy="-6" r="26" fill="#7ED957" {...OUT} strokeWidth={5} />}
       {TRASH.includes(kind) && <TrashItem kind={kind} x={0} y={-6} s={1.1} rot={-10} />}
+      {kind === 'tratado' && (
+        <g transform="rotate(-8)">
+          {[3, 2, 1, 0].map((j) => <rect key={j} x={-62 + j * 4} y={-90 - j * 10} width="124" height="130" rx="4" fill={j ? '#F1EDE2' : '#FFFFFF'} {...OUT} strokeWidth={4} />)}
+          <text x="0" y="-62" textAnchor="middle" fontFamily={FD} fontSize="30" fill="#C81E1E">CPTPP</text>
+          {[0, 1, 2, 3].map((j) => <line key={j} x1="-44" y1={-38 + j * 16} x2="44" y2={-38 + j * 16} stroke="#9A9A9A" strokeWidth="5" />)}
+          <text x="0" y="36" textAnchor="middle" fontFamily={FT} fontWeight="700" fontSize="18" fill={INK}>4.000 págs.</text>
+        </g>
+      )}
       {kind === 'manzana' && (<g><circle cx="0" cy="-4" r="24" fill="#FF3B3B" {...OUT} strokeWidth={5} /><path d="M 0 -26 Q 12 -40 22 -32" fill="#3FB34F" {...OUT} strokeWidth={4} /></g>)}
     </g>
   );
@@ -487,7 +619,7 @@ function Character({ id, p, T }) {
   return (
     <g>
       {!p.noShadow && <ellipse cx={p.x} cy={6} rx={Math.max(30, 80 - Math.min(yy, 220) * 0.18) * k} ry={12 * k} fill={INK} opacity="0.14" />}
-      <g transform={`translate(${p.x} ${-yy}) rotate(${p.lean || 0}) scale(${p.dir * p.sx * k} ${p.sy * k})`}>
+      <g transform={`translate(${p.x} ${-yy}) rotate(${p.lean || 0}) rotate(${p.spin || 0} 0 -150) scale(${p.dir * p.sx * k} ${p.sy * k})`}>
         {sp.back && sp.back(p, T)}
         {!sp.noFeet && [-1, 1].map((s) => <Blob key={s} cx={g.footDX * s} cy={-14} rx={36} ry={18} fill={sp.feet || sp.fur} shade={sp.feetS || sp.furS} hi={false} />)}
         <Blob cx={0} cy={g.bodyCy} rx={g.bodyRx} ry={g.bodyRy} fill={sp.body} shade={sp.bodyS} />
@@ -500,8 +632,8 @@ function Character({ id, p, T }) {
           {sp.ears && sp.ears(p, T)}
           <Blob cx={0} cy={g.headCy} rx={g.headRx} ry={g.headRy} fill={sp.fur} shade={sp.furS} />
           {sp.headDeco && sp.headDeco(p, T)}
-          <EyeX x={-g.eyeDX} y={g.eyeY} r={g.eyeR} mode={p.eyes} look={p.look} />
-          <EyeX x={g.eyeDX} y={g.eyeY} r={g.eyeR} mode={p.eyes} look={p.look} />
+          <EyeX x={-g.eyeDX} y={g.eyeY} r={g.eyeR} mode={p.eyes} look={p.look} lid={ADULTO ? sp.lid || sp.furS : null} />
+          <EyeX x={g.eyeDX} y={g.eyeY} r={g.eyeR} mode={p.eyes} look={p.look} lid={ADULTO ? sp.lid || sp.furS : null} />
           <Cheeks y={g.cheekY} dx={g.cheekDX} c={sp.cheek} />
           {sp.face ? sp.face(p, T) : <MouthX x={0} y={g.mouthY} w={28} p={p} />}
           {sp.top && sp.top(p, T)}
@@ -600,6 +732,25 @@ function memberPose(m, u, T, sc) {
       break;
     }
   }
+  // Botón rojo: el brazo queda sobre el botón y baja con fuerza en cada apretada.
+  if (m.action === 'aprieta' && on) {
+    let up = 0;
+    (m.presses || []).forEach((tp) => { up = Math.max(up, bump(u, tp - 0.45, tp)); });
+    p.rArm = lerp(p.rArm, -62 - 48 * up, EZ.settle(seg(u, a, a + 0.3)));
+    p.lean = 4 * up;
+    if (m.falla && m.presses && u > m.presses[m.presses.length - 1] + 0.2) { p.eyes = 'wide'; p.mood = 'o'; }
+  }
+  // Sale disparado por el techo, dando vueltas.
+  if (m.launch != null && u >= m.launch - 0.35) {
+    if (u < m.launch) { p.eyes = 'wide'; p.sy *= 1 - 0.12 * seg(u, m.launch - 0.35, m.launch); }
+    else {
+      const d = u - m.launch;
+      p.y = 700 * d + 1500 * d * d; p.spin = d * 820 * (m.x > 0 ? 1 : -1); p.eyes = 'wide'; p.mood = 'o';
+      p.rArm = -150; p.lArm = 150; p.sy *= 1.1; p.noShadow = true;
+    }
+  }
+  // Carga un objeto en la mano (por ahora: el tratado).
+  if (m.objeto === 'tratado' && m.action !== 'tirar') { p.food = 'tratado'; if (m.action !== 'aprieta') p.rArm = Math.max(p.rArm, -40); }
   if (m.hug != null || m.huggedAt != null) {
     const t = m.hug != null ? m.hug : m.huggedAt, up = EZ.settle(seg(u, t - 0.3, t));
     p.rArm = lerp(p.rArm, -112, up); p.lArm = lerp(p.lArm, 112, up);
@@ -629,7 +780,7 @@ function planScene(raw, idx, fmt, age, nd = 0) {
   const members = cast.map((c, i) => {
     const x = (i - (n - 1) / 2) * spacing;
     const dir = x < -1 ? -1 : 1;
-    return { id: c.id, action: c.accion, entrance: c.entrada, dice: c.dice, hacia: c.hacia, objeto: c.objeto, x, k, dir, look: (x < -1 ? 0.45 : x > 1 ? -0.45 : 0) * dir, seed: idx * 1.7 + i * 2.3, tracks: [], i };
+    return { id: c.id, action: c.accion, entrance: c.entrada, dice: c.dice, hacia: c.hacia, objeto: c.objeto, falla: c.falla, x, k, dir, look: (x < -1 ? 0.45 : x > 1 ? -0.45 : 0) * dir, seed: idx * 1.7 + i * 2.3, tracks: [], i };
   });
   let order = 0;
   members.forEach((m) => {
@@ -683,6 +834,24 @@ function planScene(raw, idx, fmt, age, nd = 0) {
     const len = clamp(1.4 + words(m.dice).length * 0.34, 1.9, 4.5) * pace;
     m.speak = [st, st + len]; ev(st, 'voz', { id: m.id, n: words(m.dice).length }); st += len + 0.25;
   });
+  // Estilo adulto: botón rojo, gente que sale volando y explosión.
+  const presser = members.find((m) => m.action === 'aprieta');
+  const flyers = members.filter((m) => m.action === 'volar');
+  if (raw.explosion) { sc.boomT = 0.45; ev(sc.boomT, 'boom'); }
+  let extra = 0;
+  flyers.forEach((f, j) => {
+    const base = f.speak ? f.speak[0] + clamp((f.speak[1] - f.speak[0]) * 0.6, 1.2, 2.0) : Math.max(entDone, sc.boomT || 0) + 1.4 + j * 0.6;
+    f.launch = Math.round(base * 100) / 100; ev(f.launch, 'fiuum');
+    extra = Math.max(extra, f.launch + 2.0);
+  });
+  if (presser) {
+    presser.boton = true;
+    if (flyers.length) presser.presses = flyers.map((f) => f.launch - 0.05);
+    else presser.presses = [];
+    if (flyers.length) presser.presses.unshift(flyers[0].launch - 0.85);
+  }
+  if (raw.boton && members[0]) members[0].boton = true;
+  sc.hojas = !!raw.hojas; sc.explosion = !!raw.explosion;
   const capW = words(sc.texto).length;
   sc.cap = [0.4, 0.4 + capW * (baby ? 0.42 : 0.34)];
   // Con narración real, el subtítulo dura exactamente lo que dura el audio.
@@ -692,7 +861,7 @@ function planScene(raw, idx, fmt, age, nd = 0) {
   else if (sc.palabra) sc.ban = [inDoor ? sc.doorOpen + 0.35 : Math.max(0.9, entDone - 0.2), 0];
   if (sc.ban && !sc.ban[1]) sc.ban[1] = sc.ban[0] + 2.6;
   if (sc.ban) ev(sc.ban[0], 'chime');
-  let dur = Math.max(baby ? 6 : 5, st + 0.6, sc.cap[1] + 1.3, sc.ban ? sc.ban[1] + 0.35 : 0, oneShot + 0.4, sc.doorOpen ? sc.doorOpen + 2.8 : 0, entDone + 2.2);
+  let dur = Math.max(baby ? 6 : 5, extra, st + 0.6, sc.cap[1] + 1.3, sc.ban ? sc.ban[1] + 0.35 : 0, oneShot + 0.4, sc.doorOpen ? sc.doorOpen + 2.8 : 0, entDone + 2.2);
   if (sc.kind === 'title') dur = 4.6;
   if (sc.kind === 'fin') dur = 6;
   dur = Math.min(dur, 15);
@@ -711,6 +880,12 @@ function planScene(raw, idx, fmt, age, nd = 0) {
       while (t + 1.1 <= end) { const to = x + (i % 2 ? -R : R); m.tracks.push({ t0: t, t1: t + 1.1, x0: from, x1: to, n: 3, h: 38 }); from = to; t += 1.1; i++; }
     }
     if (m.action === 'tirar') { ev(a + 1.0, 'swish'); ev(a + 1.8, 'pop'); }
+    if (m.action === 'aprieta') {
+      // Sin nadie que expulsar (o con el botón descompuesto): aprieta y aprieta.
+      if (!m.presses.length) for (let t = a + 0.8; t < dur - 0.8; t += 0.75) m.presses.push(t);
+      m.presses.forEach((t) => ev(t, 'clic'));
+      if (m.falla && m.presses.length) ev(m.presses[m.presses.length - 1] + 0.3, 'nada');
+    }
     if (m.action === 'recoger') for (let t = a + 0.3 + 0.9; t < dur - 0.3; t += 2.2) ev(t, 'pop');
     if (m.action === 'asustarse') { m.tracks.push({ t0: a + 0.3, t1: a + 0.85, x0: x, x1: x, n: 1, h: 120 }); ev(a + 0.3, 'boing'); }
     if (m.receiveAt != null) m.tracks.push({ t0: m.receiveAt + 0.1, t1: m.receiveAt + 0.7, x0: x, x1: x, n: 1, h: 60 });
@@ -747,12 +922,14 @@ function planStory(story, fmt, age, narr) {
   const events = [];
   scenes.forEach((sc) => sc.events.forEach((e) => events.push({ t: sc.start + e.t, s: e.s, a: e.a })));
   events.sort((A, B) => A.t - B.t);
-  return { scenes, total: Math.round(t * 10) / 10, events, key: st.id };
+  return { scenes, total: Math.round(t * 10) / 10, events, key: st.id, estilo: st.estilo };
 }
 
 // ── Scenery ─────────────────────────────────────────────────────────────
 const SKY = { pueblito: ['#3FA9F0', '#BDEBFF'], bosque: ['#45C2B8', '#D6F7E4'], rio: ['#46B4F5', '#CDEFFF'], playa: ['#2FB8F2', '#FFE6B0'], mercado: ['#5CC1F2', '#FFEFC6'], noche: ['#3550B8', '#8E7BE0'] };
-const GROUND = { pueblito: '#6CC04A', bosque: '#58B045', rio: '#6CC04A', playa: '#FFE2A0', mercado: '#EBCB92', casa: '#D99A5B', noche: '#3E9E74' };
+// Cielo apagado, de tarde nublada, para el estilo adulto.
+const SKY_ADULTO = { zapote: ['#5E7E9C', '#D8C9AE'], corte: ['#6F8297', '#D3CDBF'], noche: ['#1E2440', '#4A3F66'] };
+const GROUND = { zapote: '#A9A49A', oficina: '#6E2430', corte: '#A39D91', pueblito: '#6CC04A', bosque: '#58B045', rio: '#6CC04A', playa: '#FFE2A0', mercado: '#EBCB92', casa: '#D99A5B', noche: '#3E9E74' };
 const HOUSE_COL = [
   { wall: '#FFD84D', roof: '#FF6B6B', door: '#2EC4B6', doorS: '#1E9A8F' },
   { wall: '#FF9EC7', roof: '#7B5CFF', door: '#FFD84D', doorS: '#E2B92E' },
@@ -762,6 +939,14 @@ const HOUSE_COL = [
 
 function Sky({ kind, fmt, T, id }) {
   const { W, H } = fmt, V = fmt.id === 'vertical';
+  if (kind === 'oficina') {
+    return (
+      <g>
+        <defs><pattern id={`dt-${id}`} width="70" height="70" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="35" height="70" fill="#BDB49E" opacity="0.35" /></pattern></defs>
+        <rect width={W} height={H} fill="#CFC6B0" /><rect width={W} height={H} fill={`url(#dt-${id})`} />
+      </g>
+    );
+  }
   if (kind === 'casa') {
     return (
       <g>
@@ -770,7 +955,7 @@ function Sky({ kind, fmt, T, id }) {
       </g>
     );
   }
-  const [a, b] = SKY[kind] || SKY.pueblito, night = kind === 'noche';
+  const [a, b] = (ADULTO && (SKY_ADULTO[kind] || ['#6E8AA6', '#D6CDB8'])) || SKY[kind] || SKY.pueblito, night = kind === 'noche';
   const sx = V ? W * 0.2 : W * 0.1, sy = V ? H * 0.085 : H * 0.15, mx = V ? W * 0.76 : W * 0.85, my = V ? H * 0.09 : H * 0.17;
   return (
     <g>
@@ -797,9 +982,11 @@ function Sky({ kind, fmt, T, id }) {
         <g transform={`translate(${sx} ${sy})`}>
           {Array.from({ length: 10 }).map((_, j) => <path key={j} transform={`rotate(${j * 36 + T * 6})`} d="M -14 -96 L 0 -132 L 14 -96 Z" fill="#FFD23F" {...OUT} strokeWidth={5} />)}
           <circle r="84" fill="#FFD23F" {...OUT} />
-          <path d="M -36 -10 Q -26 -22 -16 -10 M 16 -10 Q 26 -22 36 -10" fill="none" {...OUT} />
-          <path d="M -22 18 Q 0 38 22 18" fill="none" {...OUT} />
-          <Cheeks y={10} dx={46} c="#FF8A3D" />
+          {!ADULTO && <g>
+            <path d="M -36 -10 Q -26 -22 -16 -10 M 16 -10 Q 26 -22 36 -10" fill="none" {...OUT} />
+            <path d="M -22 18 Q 0 38 22 18" fill="none" {...OUT} />
+            <Cheeks y={10} dx={46} c="#FF8A3D" />
+          </g>}
         </g>
       )}
     </g>
@@ -955,6 +1142,74 @@ function Backdrop({ kind, T, W, sucia }) {
           {Array.from({ length: 9 }).map((_, j) => { const fx = -900 + j * 230 + Math.sin(T * 0.8 + j) * 40, fy = -120 - (j % 3) * 90 + Math.cos(T * 1.1 + j * 2) * 30; return <g key={j}><circle cx={fx} cy={fy} r="18" fill="#FFF3B0" opacity={0.25 + 0.2 * Math.sin(T * 3 + j)} /><circle cx={fx} cy={fy} r="7" fill="#FFF3B0" /></g>; })}
         </g>
       );
+    case 'zapote':
+      return (
+        <g>
+          {clouds('#E4E4E4')}
+          {[-1500, 1500].map((px) => <Palm key={px} x={px} s={0.9} flip={px > 0 ? -1 : 1} />)}
+          <rect x="-760" y="-540" width="1520" height="540" fill="#E6DECB" {...OUT} />
+          <rect x="-790" y="-570" width="1580" height="40" fill="#CFC4AA" {...OUT} />
+          {[-1, 1].map((sd) => [0, 1, 2].map((r) => [0, 1, 2].map((c) => <rect key={`${sd}${r}${c}`} x={sd * (260 + c * 160) - 55} y={-490 + r * 140} width="110" height="90" rx="6" fill="#7F99AE" {...OUT} strokeWidth={5} />)))}
+          <rect x="-220" y="-430" width="440" height="430" fill="#D6CCB4" {...OUT} />
+          <rect x="-250" y="-470" width="500" height="50" fill="#B9AE92" {...OUT} />
+          <text x="0" y="-433" textAnchor="middle" fontFamily={FD} fontSize="36" letterSpacing="3" fill="#2B2B2B">CASA PRESIDENCIAL</text>
+          {[-170, -60, 60, 170].map((cx) => <rect key={cx} x={cx - 16} y="-420" width="32" height="400" fill="#F2EEE4" {...OUT} strokeWidth={5} />)}
+          <rect x="-110" y="-200" width="220" height="200" fill="#3B3B3F" {...OUT} />
+          <g transform="translate(330 0)">
+            <rect x="-6" y="-760" width="12" height="760" fill="#9A9A9A" {...OUT} strokeWidth={4} />
+            <g transform={`translate(6 -750) skewY(${Math.sin(T * 2) * 3})`}>
+              {['#1F3FA8', '#FFFFFF', '#D21F2C', '#D21F2C', '#FFFFFF', '#1F3FA8'].map((c, j) => <rect key={j} x="0" y={j * 26} width="230" height="26" fill={c} />)}
+              <rect x="0" y="0" width="230" height="156" fill="none" {...OUT} strokeWidth={5} />
+            </g>
+          </g>
+          {ground}
+          <path d={`M ${-W - 400} 60 L ${W + 400} 60 M ${-W - 400} 160 L ${W + 400} 160`} stroke="#8F8A80" strokeWidth="6" />
+        </g>
+      );
+    case 'oficina':
+      return (
+        <g>
+          <rect x={-W - 400} y="-3000" width={W * 2 + 800} height="2300" fill="#DAD4C6" />
+          {Array.from({ length: 30 }).map((_, j) => <path key={j} d={`M ${-W - 400 + j * 160} -3000 L ${-W - 400 + j * 160} -700`} stroke="#B9B2A2" strokeWidth="5" />)}
+          <path d={`M ${-W - 400} -700 L ${W + 400} -700`} {...OUT} />
+          <rect x="140" y="-860" width="160" height="160" fill="#141414" {...OUT} />
+          <g opacity={0.6 + 0.4 * Math.sin(T * 1.7)}><circle cx="196" cy="-748" r="9" fill="#F2F2F2" /><circle cx="244" cy="-748" r="9" fill="#F2F2F2" /><circle cx="198" cy="-746" r="4" fill="#111" /><circle cx="246" cy="-746" r="4" fill="#111" /></g>
+          <g transform="translate(-250 -430)">
+            <rect x="-120" y="-150" width="240" height="250" fill="#9FC1D9" {...OUT} />
+            {Array.from({ length: 9 }).map((_, j) => <line key={j} x1="-120" y1={-130 + j * 26} x2="120" y2={-130 + j * 26} stroke="#E8E2D2" strokeWidth="12" />)}
+            <rect x="-120" y="-150" width="240" height="250" fill="none" {...OUT} />
+          </g>
+          <g transform="translate(250 -470)">
+            <rect x="-90" y="-110" width="180" height="210" fill="#B08A3E" {...OUT} />
+            <rect x="-70" y="-90" width="140" height="170" fill="#E8DCC0" {...OUT} strokeWidth={4} />
+            <circle cx="0" cy="-20" r="40" fill="#3DAA4A" {...OUT} strokeWidth={4} />
+            <path d="M -8 -8 Q 0 20 10 -4 Z" fill="#3A3A3A" {...OUT} strokeWidth={3} />
+            <path d="M -50 80 Q 0 30 50 80 Z" fill="#3DAA4A" {...OUT} strokeWidth={4} />
+          </g>
+          <g transform="translate(-520 0)">
+            <rect x="-6" y="-560" width="12" height="560" fill="#B08A3E" {...OUT} strokeWidth={4} />
+            <g transform="translate(6 -550)">{['#1F3FA8', '#FFFFFF', '#D21F2C', '#D21F2C', '#FFFFFF', '#1F3FA8'].map((c, j) => <rect key={j} x="0" y={j * 18} width="150" height="18" fill={c} />)}<rect x="0" y="0" width="150" height="108" fill="none" {...OUT} strokeWidth={4} /></g>
+          </g>
+          {ground}
+          <path d={`M ${-W - 400} 0 L ${W + 400} 0`} {...OUT} />
+        </g>
+      );
+    case 'corte':
+      return (
+        <g>
+          {clouds('#E4E4E4')}
+          <path d="M -620 -560 L 0 -780 L 620 -560 Z" fill="#D9D4C8" {...OUT} />
+          <g transform="translate(0 -630)">
+            <line x1="0" y1="-60" x2="0" y2="30" {...OUT} strokeWidth={6} /><line x1="-70" y1="-50" x2="70" y2="-50" {...OUT} strokeWidth={6} />
+            {[-1, 1].map((sd) => <path key={sd} d={`M ${sd * 70 - 30} 0 Q ${sd * 70} 24 ${sd * 70 + 30} 0 Z M ${sd * 70} -50 L ${sd * 70 - 26} 0 M ${sd * 70} -50 L ${sd * 70 + 26} 0`} fill="#E8B923" {...OUT} strokeWidth={4} />)}
+          </g>
+          <rect x="-600" y="-560" width="1200" height="70" fill="#CBC5B7" {...OUT} />
+          <text x="0" y="-510" textAnchor="middle" fontFamily={FD} fontSize="44" letterSpacing="6" fill="#2B2B2B">CORTE SUPREMA</text>
+          {[-500, -300, -100, 100, 300, 500].map((cx) => <g key={cx}><rect x={cx - 36} y="-490" width="72" height="410" fill="#ECE8DE" {...OUT} strokeWidth={5} /><path d={`M ${cx - 12} -480 L ${cx - 12} -90 M ${cx + 12} -480 L ${cx + 12} -90`} stroke="#CFC9BB" strokeWidth="6" /></g>)}
+          {[0, 1, 2].map((j) => <rect key={j} x={-680 - j * 40} y={-80 + j * 27} width={1360 + j * 80} height="27" fill="#C6C0B2" {...OUT} strokeWidth={4} />)}
+          {ground}
+        </g>
+      );
     default:
       return (
         <g>
@@ -970,6 +1225,7 @@ function Backdrop({ kind, T, W, sucia }) {
   }
 }
 function Foreground({ kind }) {
+  if (kind === 'zapote' || kind === 'oficina' || kind === 'corte') return null;
   if (kind === 'casa' || kind === 'playa' || kind === 'mercado') {
     if (kind === 'playa') return <g>{[[-560, 70, '#FF6FB5'], [300, 120, '#FF9F1C'], [-200, 200, '#fff']].map(([x, y, c]) => <path key={x} transform={`translate(${x} ${y})`} d="M 0 -22 L 6 -6 L 22 -6 L 9 4 L 14 20 L 0 10 L -14 20 L -9 4 L -22 -6 L -6 -6 Z" fill={c} {...OUT} strokeWidth={4} />)}</g>;
     return null;
@@ -1048,6 +1304,23 @@ function Speech({ x, y, t, text, fs, halfW, cx }) {
     </g>
   );
 }
+// Botón rojo en su pedestal, al lado de quien lo aprieta (se hunde en cada apretada).
+function BotonRojo({ m, p, u }) {
+  const K = m.k * (SPECIES[m.id] || SPECIES.conejo).size, x = p.x + p.dir * 122 * K;
+  let hund = 0;
+  (m.presses || []).forEach((tp) => { hund = Math.max(hund, bump(u, tp - 0.06, tp + 0.16)); });
+  const roto = m.falla && m.presses && m.presses.length && u > m.presses[m.presses.length - 1] + 0.3;
+  return (
+    <g transform={`translate(${x} 0) scale(${K})`}>
+      <rect x="-26" y="-86" width="52" height="86" rx="6" fill="#4A4A50" {...OUT} strokeWidth={5} />
+      <rect x="-40" y="-100" width="80" height="20" rx="6" fill="#2E2E33" {...OUT} strokeWidth={5} />
+      <g transform={`translate(0 -100) scale(1 ${1 - 0.45 * hund})`}>
+        <path d="M -28 0 A 28 26 0 0 1 28 0 Z" fill={roto ? '#5A3030' : '#E3141B'} {...OUT} strokeWidth={5} />
+        <ellipse cx="-10" cy="-14" rx="8" ry="4" fill="#fff" opacity="0.6" />
+      </g>
+    </g>
+  );
+}
 const Heart = ({ x, y, s, o }) => <path transform={`translate(${x} ${y}) scale(${s})`} opacity={o} d="M 0 18 C -34 -6 -24 -34 0 -18 C 24 -34 34 -6 0 18 Z" fill="#FF4D7D" {...OUT} strokeWidth={4} />;
 function Effects({ sc, u, T, poses }) {
   const out = [];
@@ -1071,6 +1344,22 @@ function Effects({ sc, u, T, poses }) {
         out.push(<TrashItem key={`th${j}`} kind={m.objeto || TRASH[(sc.idx + m.i) % 4]} x={lerp(hx, tx, fl)} y={lerp(hy, ty, fl) - Math.sin(fl * Math.PI) * 220 + bob} s={1.1} rot={fl < 1 ? fl * 540 : river ? 70 : 20} />);
         out.push(<FxBubble key={`pl${j}`} x={tx} y={ty - 150} t={seg(u, rel + 0.75, rel + 1.9)} text={river ? '¡PLAF!' : '¡PAF!'} size={0.65} fill="#9FDcFF" color="#fff" />);
       }
+    }
+    if (m.action === 'aprieta' && m.presses) m.presses.forEach((tp, q) => {
+      const bx = p.x + p.dir * 122 * m.k;
+      out.push(<FxBubble key={`cl${j}${q}`} x={bx + p.dir * 60} y={-260 * m.k} t={seg(u, tp, tp + 0.7)} text="¡CLIC!" size={0.55} fill="#FFFFFF" color="#E3141B" />);
+    });
+    if (m.falla && m.presses && m.presses.length) {
+      const tl = m.presses[m.presses.length - 1] + 0.3;
+      out.push(<FxBubble key={`nd${j}`} x={p.x + p.dir * 170 * m.k} y={-380 * m.k} t={seg(u, tl, tl + 1.6)} text="…NADA" size={0.6} fill="#D8D8D8" color="#333" />);
+    }
+    if (m.launch != null && u >= m.launch) {
+      const d = u - m.launch;
+      for (let q = 0; q < 6; q++) {
+        const ph = clamp((d - q * 0.08) / 1.4, 0, 1); if (ph <= 0 || ph >= 1) continue;
+        out.push(<circle key={`hm${j}${q}`} cx={m.x + Math.sin(q * 2.3) * 60 * ph} cy={-40 - q * 70 - ph * 120} r={(40 + q * 6) * (0.5 + ph)} fill="#CFCFCF" {...OUT} strokeWidth={4} opacity={1 - ph} />);
+      }
+      out.push(<FxBubble key={`fi${j}`} x={clamp(m.x, -sc.halfW + 220, sc.halfW - 220)} y={-620} t={seg(u, m.launch + 0.1, m.launch + 1.5)} text="¡FIUUUM!" size={0.8} fill="#FFE14D" color="#E3141B" />);
     }
     if (m.action === 'comer') out.push(<FxBubble key={`nm${j}`} x={p.x + 150 * p.dir} y={top + 40} t={seg(u, a + 0.7, a + 2.0)} text="¡ÑAM!" size={0.75} fill="#FFD84D" />);
     if (m.action === 'reir') for (let t = a; t < sc.dur - 0.5; t += 3.5) out.push(<FxBubble key={`jj${j}${t}`} x={p.x + 160 * (p.x > 0 ? -1 : 1)} y={top + 20} t={seg(u, t, t + 1.4)} text="¡JA JA!" size={0.7} fill="#7EE0C3" color="#FFD23F" />);
@@ -1102,6 +1391,30 @@ function Effects({ sc, u, T, poses }) {
       [-1, 1].forEach((d) => [0, 1].forEach((jj) => out.push(<circle key={`d${j}-${ti}-${li}-${d}-${jj}`} cx={l.x + d * (70 + kk * (60 + jj * 40))} cy={-6 - kk * (14 + jj * 14)} r={(16 - jj * 5) * (1 - q * 0.7)} fill="#fff" {...OUT} strokeWidth={4} opacity={1 - q} />)));
     }); });
   });
+  // Llueven hojas del tratado.
+  const lanzados = m0.filter((m) => m.launch != null);
+  if (sc.hojas && lanzados.length) {
+    const t0 = lanzados[0].launch + 0.3;
+    for (let q = 0; q < 18; q++) {
+      const ph = (u - t0 - (q % 6) * 0.25) / 3.2; if (ph <= 0 || ph >= 1) continue;
+      const hx = ((q * 337) % 1000) / 1000 * sc.halfW * 2 - sc.halfW, hy = -1000 + ph * 1100;
+      out.push(<g key={`hj${q}`} transform={`translate(${hx + Math.sin(ph * 9 + q) * 60} ${hy}) rotate(${Math.sin(ph * 7 + q) * 40})`}><rect x="-34" y="-44" width="68" height="88" fill="#FFFFFF" {...OUT} strokeWidth={4} /><path d="M -20 -24 L 20 -24 M -20 -8 L 20 -8 M -20 8 L 14 8" stroke="#9A9A9A" strokeWidth="5" /></g>);
+    }
+  }
+  // ¡BUUUM!
+  if (sc.boomT != null) {
+    const b = (u - sc.boomT) / 1.8;
+    if (b > 0 && b < 1) {
+      const k = EZ.settle(Math.min(1, b * 2.2));
+      out.push(<g key="boom" opacity={1 - Math.max(0, b - 0.6) / 0.4}>
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((q) => { const a = q * 0.785 + 0.3; return <circle key={q} cx={Math.cos(a) * 260 * k} cy={-300 + Math.sin(a) * 200 * k - b * 160} r={150 * k + 20} fill={q % 2 ? '#8E8E8E' : '#6E6E6E'} {...OUT} />; })}
+        <circle cx="0" cy="-300" r={260 * k} fill="#FF8A1F" {...OUT} />
+        <circle cx="0" cy="-300" r={170 * k} fill="#FFD84D" />
+      </g>);
+      out.push(<Burst key="bmb" cx={0} cy={-300} t={b} color="#FF8A1F" />);
+    }
+    out.push(<FxBubble key="bmt" x={0} y={-560} t={seg(u, sc.boomT + 0.05, sc.boomT + 1.9)} text="¡BUUUM!" size={1.2} fill="#FFD84D" color="#E3141B" />);
+  }
   return <g>{out}</g>;
 }
 
@@ -1112,10 +1425,13 @@ function SceneWorld({ sc, u, T, fmt, uid }) {
   const kn = sc.knocker;
   const shake = kn ? Math.sin(u * 60) * 4 * (bump(u, kn.knock.ka - 0.02, kn.knock.ka + 0.16) + bump(u, kn.knock.kb - 0.02, kn.knock.kb + 0.16)) : 0;
   const open = sc.door ? EZ.pop(seg(u, sc.doorOpen, sc.doorOpen + 0.25)) : 0;
+  // La explosión sacude la pantalla.
+  const tb = sc.boomT != null ? u - sc.boomT : -1, sh = tb > 0 && tb < 0.9 ? 26 * (1 - tb / 0.9) : 0;
+  const shx = sh * Math.sin(u * 83), shy = sh * Math.cos(u * 61);
   return (
     <g>
       <Sky kind={sc.lugar} fmt={fmt} T={T} id={uid} />
-      <g transform={`translate(${fmt.W / 2} ${fmt.GY}) scale(${s})`}>
+      <g transform={`translate(${fmt.W / 2 + shx} ${fmt.GY + shy}) scale(${s})`}>
         <Backdrop kind={sc.lugar} T={T} W={halfW + 300} sucia={sc.sucia} />
         {sc.botes && <RecycleBins halfW={halfW} />}
         <SceneTrash sc={sc} u={u} T={T} />
@@ -1124,6 +1440,7 @@ function SceneWorld({ sc, u, T, fmt, uid }) {
             {dj >= 0 && !poses[dj].hidden && <Character id={sc.members[dj].id} p={Object.assign({}, poses[dj], { y: -(1 - poses[dj].rise) * 420, noShadow: true })} T={T} />}
           </Casita>
         )}
+        {sc.members.map((m, j) => m.boton && !poses[j].hidden && <BotonRojo key={`b${j}`} m={m} p={poses[j]} u={u} />)}
         {poses.map((p, j) => (j === dj || p.hidden ? null : <Character key={j} id={sc.members[j].id} p={p} T={T} />))}
         <Effects sc={sc} u={u} T={T} poses={poses} />
         <Foreground kind={sc.lugar} />
@@ -1140,7 +1457,7 @@ function Banner({ sc, u, fmt }) {
   const lines = wrap(sc.palabra, fmt.ban.chars);
   const longest = Math.max(...lines.map((l) => l.length));
   const size = Math.min(fmt.ban.size, (fmt.W * 0.9) / (longest * 0.66));
-  const pal = ['#FFD23F', '#FF6FB5', '#7EE0C3', '#FF8C42', '#B9A6FF'];
+  const pal = ADULTO ? ['#F2C230', '#FFFFFF', '#E8402F', '#F2C230', '#FFFFFF'] : ['#FFD23F', '#FF6FB5', '#7EE0C3', '#FF8C42', '#B9A6FF'];
   let n = 0;
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, top: fmt.ban.top, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: size * 0.1, pointerEvents: 'none' }}>
@@ -1168,10 +1485,10 @@ function Caption({ sc, u, fmt }) {
   const s = EZ.pop(seg(u, 0.2, 0.5)) * (1 - EZ.glide(seg(u, sc.dur - 0.3, sc.dur)));
   return (
     <div style={{ position: 'absolute', left: 0, right: 0, bottom: fmt.cap.bottom, display: 'flex', justifyContent: 'center', pointerEvents: 'none', padding: '0 30px' }}>
-      <div style={{ maxWidth: fmt.cap.maxW, background: '#fff', border: `6px solid ${INK}`, borderRadius: 36, padding: '16px 34px 20px', boxShadow: `0 8px 0 ${INK}`, fontFamily: FT, fontWeight: 600, fontSize: fmt.cap.size, lineHeight: 1.22, textAlign: 'center', color: INK, textWrap: 'balance', transform: `scale(${s})`, opacity: s > 0.02 ? 1 : 0 }}>
+      <div style={{ maxWidth: fmt.cap.maxW, background: ADULTO ? '#121214' : '#fff', border: `6px solid ${ADULTO ? '#F2C230' : INK}`, borderRadius: ADULTO ? 10 : 36, padding: '16px 34px 20px', boxShadow: `0 8px 0 ${INK}`, fontFamily: FT, fontWeight: 600, fontSize: fmt.cap.size, lineHeight: 1.22, textAlign: 'center', color: ADULTO ? '#F4F4F4' : INK, textWrap: 'balance', transform: `scale(${s})`, opacity: s > 0.02 ? 1 : 0 }}>
         {ws.map((w, j) => (
           <React.Fragment key={j}>
-            <span style={{ display: 'inline-block', padding: '0 6px', borderRadius: 12, background: j === lit ? '#FFD23F' : 'transparent', color: j < lit ? '#1D5BC0' : INK, transform: j === lit ? 'scale(1.08)' : 'none' }}>{w}</span>{' '}
+            <span style={{ display: 'inline-block', padding: '0 6px', borderRadius: 12, background: j === lit ? (ADULTO ? '#E8402F' : '#FFD23F') : 'transparent', color: ADULTO ? (j < lit ? '#F2C230' : '#F4F4F4') : (j < lit ? '#1D5BC0' : INK), transform: j === lit ? 'scale(1.08)' : 'none' }}>{w}</span>{' '}
           </React.Fragment>
         ))}
       </div>
@@ -1209,6 +1526,7 @@ function StoryFrame({ plan, fmt, opts }) {
       </svg>
       {opts.captions && <Caption sc={sc} u={u} fmt={fmt} />}
       <Banner sc={sc} u={u} fmt={fmt} />
+      {ADULTO && <div style={{ position: 'absolute', right: 24, top: fmt.id === 'vertical' ? 110 : 22, padding: '6px 14px', background: '#121214', border: '4px solid #F2C230', borderRadius: 8, fontFamily: FD, fontSize: 30, letterSpacing: 2, color: '#F2C230' }}>SÁTIRA · +18</div>}
     </div>
   );
 }
@@ -1227,9 +1545,10 @@ function SoundHint() {
 function StoryPlayer(props) {
   const fmt = FMT[props.format] || FMT.horizontal;
   const age = props.age || 'bebes';
+  ponerEstilo(sanitizeStory(props.story).estilo);
   const plan = React.useMemo(() => planStory(props.story, fmt, age, props.narracion), [props.story, fmt, age, props.narracion]);
   React.useEffect(() => {
-    if (props.onPlan) props.onPlan({ key: plan.key, total: plan.total, events: plan.events, scenes: plan.scenes.map((s) => ({ src: s.src, dur: s.dur, kind: s.kind, lugar: s.lugar, start: s.start, narr: s.narr || null })) });
+    if (props.onPlan) props.onPlan({ key: plan.key, estilo: plan.estilo, total: plan.total, events: plan.events, scenes: plan.scenes.map((s) => ({ src: s.src, dur: s.dur, kind: s.kind, lugar: s.lugar, start: s.start, narr: s.narr || null })) });
   }, [plan]);
   const scenesJSON = React.useMemo(() => JSON.stringify(plan.scenes.map((s) => ({ name: s.label, dur: s.dur }))), [plan]);
   const opts = { sound: props.sound !== false, music: props.music !== false, captions: props.captions !== false };
