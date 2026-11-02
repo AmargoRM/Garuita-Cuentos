@@ -1,0 +1,196 @@
+{
+  "id": "ejemplo",
+  "titulo": "Tío Conejo y sus amigos",
+  "escenas": [
+    {
+      "lugar": "pueblito",
+      "texto": "Tío Conejo sale de su casita. ¡Qué día tan bonito!",
+      "palabra": "CONEJO",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "saltar",
+          "entrada": "izquierda",
+          "dice": "¡Hola, amiguitos!"
+        }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "texto": "Tun, tun. ¿Quién vive en esta casita?",
+      "palabra": "GALLINA",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "tocar",
+          "entrada": "ya"
+        },
+        {
+          "id": "gallina",
+          "accion": "saludar",
+          "entrada": "puerta",
+          "dice": "¡Co-co! ¡Hola, Conejo!"
+        }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "texto": "En el bosque, el Mono se ríe con ellos.",
+      "palabra": "MONO",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "caminar",
+          "entrada": "izquierda"
+        },
+        {
+          "id": "mono",
+          "accion": "reir",
+          "entrada": "aparece",
+          "dice": "¡Ja, ja! ¡Hola!"
+        },
+        {
+          "id": "gallina",
+          "accion": "caminar",
+          "entrada": "derecha"
+        }
+      ]
+    },
+    {
+      "lugar": "rio",
+      "texto": "En el río está la Tortuga. Va despacito.",
+      "palabra": "TORTUGA",
+      "personajes": [
+        {
+          "id": "tortuga",
+          "accion": "saludar",
+          "entrada": "ya",
+          "dice": "Voy despacito…"
+        },
+        {
+          "id": "conejo",
+          "accion": "saludar",
+          "entrada": "derecha"
+        }
+      ]
+    },
+    {
+      "lugar": "mercado",
+      "texto": "En el mercado, la Vaca tiene fruta rica.",
+      "palabra": "VACA",
+      "personajes": [
+        {
+          "id": "vaca",
+          "accion": "hablar",
+          "entrada": "ya",
+          "dice": "¡Muuu! ¿Quieren fruta?"
+        },
+        {
+          "id": "conejo",
+          "accion": "comer",
+          "entrada": "izquierda"
+        }
+      ]
+    },
+    {
+      "lugar": "playa",
+      "texto": "En la playa bailan el Tucán y el Perro.",
+      "palabra": "BAILAR",
+      "personajes": [
+        {
+          "id": "tucan",
+          "accion": "bailar",
+          "entrada": "aparece"
+        },
+        {
+          "id": "perro",
+          "accion": "bailar",
+          "entrada": "izquierda",
+          "dice": "¡Guau, guau!"
+        },
+        {
+          "id": "gato",
+          "accion": "saludar",
+          "entrada": "derecha"
+        }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "texto": "¡Uy! Aparece Tío Tigre… ¡pero solo quiere jugar!",
+      "palabra": "TIGRE",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "asustarse",
+          "entrada": "ya"
+        },
+        {
+          "id": "tigre",
+          "accion": "reir",
+          "entrada": "aparece",
+          "dice": "¡No se asusten! ¡Quiero jugar!"
+        }
+      ]
+    },
+    {
+      "lugar": "casa",
+      "texto": "Tío Conejo le da un regalo a Tío Tigre.",
+      "palabra": "REGALO",
+      "personajes": [
+        {
+          "id": "conejo",
+          "accion": "regalo",
+          "entrada": "izquierda",
+          "hacia": "tigre"
+        },
+        {
+          "id": "tigre",
+          "accion": "quieto",
+          "entrada": "ya",
+          "dice": "¡Gracias, amigo!"
+        }
+      ]
+    },
+    {
+      "lugar": "casa",
+      "texto": "Y Tío Tigre le da un abrazo grandote.",
+      "palabra": "ABRAZO",
+      "personajes": [
+        {
+          "id": "tigre",
+          "accion": "abrazar",
+          "entrada": "ya",
+          "hacia": "conejo"
+        },
+        {
+          "id": "conejo",
+          "accion": "quieto",
+          "entrada": "ya"
+        }
+      ]
+    },
+    {
+      "lugar": "noche",
+      "texto": "Llega la noche. Todos a dormir. ¡Buenas noches!",
+      "palabra": "NOCHE",
+      "personajes": [
+        {
+          "id": "perezoso",
+          "accion": "dormir",
+          "entrada": "ya"
+        },
+        {
+          "id": "conejo",
+          "accion": "dormir",
+          "entrada": "izquierda"
+        },
+        {
+          "id": "tortuga",
+          "accion": "dormir",
+          "entrada": "ya"
+        }
+      ]
+    }
+  ]
+}

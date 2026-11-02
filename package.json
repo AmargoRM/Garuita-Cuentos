@@ -1,0 +1,20 @@
+{
+  "name": "garuita-cuentos",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Motor de cuentos animados de Tío Conejo para Garuita Cuentos",
+  "scripts": {
+    "build": "esbuild motor/main.jsx --bundle --minify --outfile=publico/motor.js --loader:.woff2=file --loader:.woff=file --asset-names=fuentes/[name] --jsx-factory=React.createElement --jsx-fragment=React.Fragment",
+    "servir": "node herramientas/servidor.mjs",
+    "captura": "node herramientas/captura.mjs"
+  },
+  "dependencies": {
+    "@fontsource/fredoka": "5.2.8",
+    "@fontsource/luckiest-guy": "5.2.8",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}

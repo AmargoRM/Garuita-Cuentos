@@ -101,7 +101,7 @@ respetar al diferente, cumplir la palabra, no burlarse.
 
 | Fase | Resultado | Esfuerzo |
 |---|---|---|
-| **0. Base** | Sacar el motor de Claude Design para que corra solo en una computadora o en GitHub. | Medio |
+| **0. Base** ✅ | Sacar el motor de Claude Design para que corra solo en una computadora o en GitHub. Hecho: `motor/` + `herramientas/captura.mjs`. | Medio |
 | **1. Guion automático** | Comando que genera un cuento JSON nuevo a partir de una semilla. | Bajo |
 | **2. Voces** | Comando que crea los audios por personaje con Chatterbox (o Piper para pruebas). | Medio |
 | **3. Render con sonido** | MP4 horizontal y vertical con voces, música y subtítulos. | Alto |
