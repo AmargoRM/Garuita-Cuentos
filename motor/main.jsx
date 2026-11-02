@@ -16,6 +16,7 @@ import '@fontsource/fredoka/700.css';
 import '@fontsource/luckiest-guy/400.css';
 import './escenario.jsx';
 import './story-engine.jsx';
+import './musica.js';
 
 const q = new URLSearchParams(location.search);
 const nombre = (q.get('cuento') || 'ejemplo').replace(/[^a-zA-Z0-9_-]/g, '');
@@ -43,6 +44,21 @@ function anotarPlan(plan, narracion) {
   window.__garuitaNarracion = lista;
   window.__garuitaPlan = plan;
 }
+
+// Para grabar: arma la música y los efectos (motor/musica.js) y los entrega por pedazos
+// en base64, porque un video largo tiene muchos datos de sonido.
+window.__garuitaGrabarSonido = async (o) => {
+  const r = await window.GaruitaMusica.grabarSonido(Object.assign({ plan: window.__garuitaPlan }, o));
+  window.__garuitaSonido = r;
+  return { musica: r.musica ? r.musica.length : 0, efectos: r.efectos ? r.efectos.length : 0, info: r.info };
+};
+window.__garuitaPedazo = (pista, desde, cantidad) => {
+  const datos = window.__garuitaSonido[pista];
+  const b = new Uint8Array(datos.buffer, datos.byteOffset + desde * 2, Math.min(cantidad, datos.length - desde) * 2);
+  let s = '';
+  for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+  return btoa(s);
+};
 
 async function iniciar() {
   const raiz = createRoot(document.getElementById('app'));

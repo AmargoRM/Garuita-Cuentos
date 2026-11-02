@@ -5,9 +5,12 @@
 //   npm run captura -- --cuento ejemplo --formato vertical --video
 //       -> salida/ejemplo-vertical.mp4 (30 cuadros por segundo)
 //
-// Si el cuento tiene narración importada (npm run voz), el video sale con esa voz.
+// El video sale con música de fondo original (motor/musica.js), los efectos de sonido
+// del motor y, si el cuento tiene narración importada (npm run voz), con esa voz.
+// La música baja sola mientras habla el narrador.
 // Opciones: --edad ninos | --fps 30 | --desde 0 --hasta 10 (segundos, para pruebas)
-//           --sin-voz (ignora la narración)
+//           --sin-voz (ignora la narración) | --sin-musica | --sin-efectos
+//           --volumen-musica 1 (más alto: 1.5, más bajo: 0.6)
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -29,6 +32,9 @@ const fps = Number(opt('fps', 30));
 const quiereVideo = opt('video', false) === true;
 const fotos = Number(opt('fotos', 6));
 const sinVoz = opt('sin-voz', false) === true;
+const sinMusica = opt('sin-musica', false) === true;
+const sinEfectos = opt('sin-efectos', false) === true;
+const volumenMusica = Number(opt('volumen-musica', 1)) || 1;
 const [W, H] = formato === 'vertical' ? [1080, 1920] : [1920, 1080];
 
 if (!fs.existsSync(path.join(raiz, 'publico', 'motor.js'))) {
@@ -85,10 +91,9 @@ try {
     ff.stdin.end();
     await termino;
     const usados = narracion.filter((n) => n.inicio >= desde && n.inicio < hasta);
-    if (usados.length) {
-      process.stdout.write(`\n  agregando ${usados.length} audios de narración`);
-      ponerVoz(archivo, usados, desde, hasta - desde);
-    }
+    process.stdout.write(`\n  armando el sonido: ${[usados.length && `${usados.length} audios de narración`, !sinMusica && 'música', !sinEfectos && 'efectos'].filter(Boolean).join(', ') || 'nada'}`);
+    const pistas = await grabarPistas(pagina, archivo, desde, hasta);
+    ponerSonido(archivo, usados, pistas, desde, hasta - desde);
     console.log(`\n  video -> ${path.relative(raiz, archivo)}`);
   }
   if (errores.length) { console.error('Errores en la página:\n  ' + errores.join('\n  ')); process.exitCode = 1; }
@@ -97,17 +102,64 @@ try {
   servidor.close();
 }
 
-// Junta el video mudo con cada audio de narración, puesto en su segundo exacto.
-function ponerVoz(archivo, lista, desde, largo) {
-  const temporal = archivo.replace(/\.mp4$/, '.con-voz.mp4');
-  const entradas = lista.flatMap((n) => ['-i', path.join(raiz, n.archivo)]);
-  const pistas = lista.map((n, i) => {
-    const ms = Math.max(0, Math.round((n.inicio - desde) * 1000));
-    return `[${i + 1}:a]aresample=48000,adelay=${ms}:all=1[a${i}]`;
+// Pide al motor la música y los efectos ya dibujados y los guarda como WAV junto al video.
+async function grabarPistas(pagina, archivo, desde, hasta) {
+  if (sinMusica && sinEfectos) return {};
+  const largos = await pagina.evaluate((o) => window.__garuitaGrabarSonido(o), { desde, hasta, musica: !sinMusica, efectos: !sinEfectos });
+  const pistas = {};
+  for (const nombre of ['musica', 'efectos']) {
+    if (!largos[nombre]) continue;
+    const partes = [];
+    for (let i = 0; i < largos[nombre]; i += 4_000_000) {
+      partes.push(Buffer.from(await pagina.evaluate(([p, a, b]) => window.__garuitaPedazo(p, a, b), [nombre, i, 4_000_000]), 'base64'));
+    }
+    const f = archivo.replace(/\.mp4$/, `.${nombre}.wav`);
+    fs.writeFileSync(f, wav(Buffer.concat(partes), 48000, 2));
+    pistas[nombre] = f;
+  }
+  return pistas;
+}
+
+// Arma un archivo WAV (16 bits) a partir de los datos crudos.
+function wav(datos, sr, canales) {
+  const h = Buffer.alloc(44);
+  h.write('RIFF', 0); h.writeUInt32LE(36 + datos.length, 4); h.write('WAVE', 8); h.write('fmt ', 12);
+  h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(canales, 22); h.writeUInt32LE(sr, 24);
+  h.writeUInt32LE(sr * canales * 2, 28); h.writeUInt16LE(canales * 2, 32); h.writeUInt16LE(16, 34);
+  h.write('data', 36); h.writeUInt32LE(datos.length, 40);
+  return Buffer.concat([h, datos]);
+}
+
+// Junta el video mudo con la voz (cada audio en su segundo exacto), la música y los efectos.
+// Volúmenes: voz al 100 %, efectos bien audibles y la música de fondo bien por debajo.
+// Al final se empareja el volumen general al nivel que usa YouTube (-14 LUFS).
+function ponerSonido(archivo, lista, pistas, desde, largo) {
+  const temporal = archivo.replace(/\.mp4$/, '.con-sonido.mp4');
+  const entradas = [], filtros = [], mezcla = [];
+  const estereo = 'aresample=48000,aformat=channel_layouts=stereo';
+  lista.forEach((n) => {
+    const i = entradas.length / 2 + 1, ms = Math.max(0, Math.round((n.inicio - desde) * 1000));
+    entradas.push('-i', path.join(raiz, n.archivo));
+    filtros.push(`[${i}:a]${estereo},adelay=${ms}:all=1[v${i}]`); mezcla.push(`[v${i}]`);
   });
-  const mezcla = `${pistas.join(';')};${lista.map((_, i) => `[a${i}]`).join('')}amix=inputs=${lista.length}:normalize=0,apad,atrim=0:${largo.toFixed(3)}[voz]`;
-  const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', archivo, ...entradas, '-filter_complex', mezcla,
-    '-map', '0:v', '-map', '[voz]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', temporal], { stdio: 'inherit' });
-  if (r.status !== 0) throw new Error('ffmpeg no pudo agregar la narración');
+  if (pistas.efectos) {
+    const i = entradas.length / 2 + 1; entradas.push('-i', pistas.efectos);
+    filtros.push(`[${i}:a]${estereo},volume=2.2[e]`); mezcla.push('[e]');
+  }
+  if (pistas.musica) {
+    const i = entradas.length / 2 + 1; entradas.push('-i', pistas.musica);
+    filtros.push(`[${i}:a]${estereo},volume=${(0.55 * volumenMusica).toFixed(3)}[m]`); mezcla.push('[m]');
+  }
+  if (!mezcla.length) return;
+  const base = `${filtros.join(';')};${mezcla.join('')}amix=inputs=${mezcla.length}:normalize=0,apad,atrim=0:${largo.toFixed(3)}`;
+  // Primera pasada: medir el volumen. Segunda: corregirlo parejo (sin "bombeo").
+  const medida = spawnSync('ffmpeg', ['-hide_banner', '-i', archivo, ...entradas, '-filter_complex', `${base},loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json[s]`, '-map', '[s]', '-f', 'null', '-'], { encoding: 'utf8' });
+  const json = JSON.parse((medida.stderr.match(/\{[^{}]*"input_i"[^{}]*\}/) || ['{}'])[0]);
+  const ln = json.input_i && isFinite(Number(json.input_i))
+    ? `loudnorm=I=-14:TP=-1.5:LRA=11:measured_I=${json.input_i}:measured_TP=${json.input_tp}:measured_LRA=${json.input_lra}:measured_thresh=${json.input_thresh}:offset=${json.target_offset}:linear=true`
+    : 'loudnorm=I=-14:TP=-1.5:LRA=11';
+  const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', archivo, ...entradas, '-filter_complex', `${base},${ln},aresample=48000[s]`,
+    '-map', '0:v', '-map', '[s]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', temporal], { stdio: 'inherit' });
+  if (r.status !== 0) throw new Error('ffmpeg no pudo agregar el sonido');
   fs.renameSync(temporal, archivo);
 }
