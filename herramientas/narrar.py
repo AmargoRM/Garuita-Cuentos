@@ -75,9 +75,15 @@ def main():
     os.makedirs(carpeta, exist_ok=True)
     temporal = tempfile.mkdtemp()
 
-    def limpiar(origen, nombre_ref):
+    def limpiar(origen, nombre_ref, tono_ref=0.0):
         ref = os.path.join(temporal, f"{nombre_ref}.wav")
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", origen, "-af", LIMPIAR_REFERENCIA, "-ac", "1", "-ar", "24000", "-t", "15", ref], check=True)
+        filtro = LIMPIAR_REFERENCIA
+        if tono_ref:
+            # Sube el tono de la grabación ANTES de clonar: el modelo aprende una voz más aguda
+            # y la reproduce con naturalidad (subirlo después, mucho, suena robótico).
+            r = 2 ** (float(tono_ref) / 12)
+            filtro += f",aresample=48000,asetrate={48000 * r:.0f},aresample=24000,atempo={1 / r:.4f}"
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", origen, "-af", filtro, "-ac", "1", "-ar", "24000", "-t", "15", ref], check=True)
         return ref
 
     referencia = limpiar(a.voz, "narrador")
@@ -117,7 +123,7 @@ def main():
     # Prepara cada voz una sola vez y la guarda para cambiar rápido entre narrador y personajes.
     condiciones = {}
     for pid, v in [("narrador", None)] + sorted(voces.items()):
-        modelo.prepare_conditionals(referencia if v is None else limpiar(v["archivo"], pid), exaggeration=ajustes[pid]["expresividad"])
+        modelo.prepare_conditionals(referencia if v is None else limpiar(v["archivo"], pid, v.get("tono_referencia", 0)), exaggeration=ajustes[pid]["expresividad"])
         condiciones[pid] = modelo.conds
     pausa = np.zeros(int(modelo.sr * 0.35), dtype=np.float32)
 
