@@ -1,0 +1,506 @@
+{
+ "id": "aguacero",
+ "tipo": "bebes",
+ "titulo": "El aguacero de la tarde",
+ "tema": "Goza y no goza: Chito juega en el aguacero, se moja, estornuda y aprende a salir con capa y botas.",
+ "partes": [
+  {
+   "id": "aguacero",
+   "nombre": "El aguacero de la tarde",
+   "escenas": [
+    {
+     "seg": 1,
+     "inicio": 0.35,
+     "lugar": "garua",
+     "lluvia": true,
+     "charco": {
+      "x": 0
+     },
+     "chaps": [
+      "f1@0.05",
+      "f1@0.4"
+     ],
+     "camara": [
+      {
+       "z": 1.35,
+       "y": 60
+      },
+      {
+       "z": 1.25,
+       "y": 40
+      }
+     ],
+     "personajes": [
+      {
+       "id": "mono",
+       "x": 0,
+       "accion": "saltar"
+      }
+     ],
+     "frases": [
+      {
+       "texto": "¡Plaf, plaf! ¡Qué tuanis!",
+       "quien": "mono",
+       "decir": "Plaf... plaf... ¡Qué tuanis!"
+      }
+     ],
+     "sonidos": [
+      {
+       "id": "charco",
+       "en": "f1@0.05",
+       "vol": 0.35
+      },
+      {
+       "id": "charco",
+       "en": "f1@0.4",
+       "vol": 0.35
+      }
+     ],
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.25
+     },
+     "cola": 0.45,
+     "pausa": 0.35
+    },
+    {
+     "seg": 1,
+     "lugar": "garua",
+     "lluvia": true,
+     "casa": true,
+     "charco": {
+      "x": 0.55
+     },
+     "camara": [
+      {
+       "z": 1.0
+      },
+      {
+       "z": 1.06
+      }
+     ],
+     "personajes": [
+      {
+       "id": "gallina",
+       "x": -0.62,
+       "accion": "quieto",
+       "acciones": [
+        [
+         "f1",
+         "llamar"
+        ],
+        [
+         "f1+",
+         "quieto"
+        ]
+       ],
+       "seco": true
+      },
+      {
+       "id": "conejo",
+       "x": -0.2,
+       "accion": "quieto",
+       "seco": true
+      },
+      {
+       "id": "mono",
+       "x": 0.55,
+       "accion": "saltar",
+       "dir": -1
+      }
+     ],
+     "frases": [
+      {
+       "texto": "Chito, venga a la casa.",
+       "quien": "gallina"
+      },
+      {
+       "texto": "¡Un ratito más, Clota!",
+       "quien": "mono"
+      }
+     ],
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.25
+     },
+     "inicio": 0.35,
+     "cola": 0.45,
+     "pausa": 0.35
+    },
+    {
+     "seg": 1,
+     "lugar": "garua",
+     "lluvia": true,
+     "riito": true,
+     "camara": [
+      {
+       "z": 1.15,
+       "x": -60,
+       "y": 40
+      },
+      {
+       "z": 1.15,
+       "x": 120,
+       "y": 40
+      }
+     ],
+     "personajes": [
+      {
+       "id": "conejo",
+       "x": -0.75,
+       "accion": "hoja"
+      },
+      {
+       "id": "mono",
+       "x": -0.35,
+       "accion": "caminar",
+       "hasta_x": 0.45,
+       "acciones": [
+        [
+         "f1",
+         "caminar"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      {
+       "texto": "¡Mi barquito navega!",
+       "quien": "mono"
+      },
+      {
+       "texto": "¡Qué barquito más bonito!",
+       "quien": "conejo"
+      }
+     ],
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.25
+     },
+     "inicio": 0.35,
+     "cola": 0.45,
+     "pausa": 0.35
+    },
+    {
+     "seg": 1,
+     "lugar": "garua",
+     "lluvia": "fina",
+     "camara": [
+      {
+       "z": 1.3,
+       "y": 60
+      },
+      {
+       "z": 1.45,
+       "y": 80
+      }
+     ],
+     "personajes": [
+      {
+       "id": "mono",
+       "x": 0,
+       "accion": "frio",
+       "mojado": true
+      }
+     ],
+     "frases": [
+      {
+       "texto": "Brrr... tengo mucho frío.",
+       "quien": "mono",
+       "decir": "Brrr... ¡Tengo mucho frío!"
+      }
+     ],
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.18
+     },
+     "inicio": 0.35,
+     "cola": 0.45,
+     "pausa": 0.35
+    },
+    {
+     "seg": 1,
+     "inicio": 0.35,
+     "lugar": "garua",
+     "lluvia": "fina",
+     "camara": [
+      {
+       "z": 1.35,
+       "x": -80,
+       "y": 70
+      },
+      {
+       "z": 1.45,
+       "x": -60,
+       "y": 80
+      }
+     ],
+     "personajes": [
+      {
+       "id": "conejo",
+       "x": -0.55,
+       "accion": "hoja"
+      },
+      {
+       "id": "mono",
+       "x": 0.15,
+       "accion": "estornudar",
+       "mojado": true,
+       "dir": -1
+      }
+     ],
+     "frases": [
+      {
+       "texto": "Ah... ah... ¡achís!",
+       "quien": "mono"
+      },
+      {
+       "texto": "¡Salud, Chito!",
+       "quien": "conejo"
+      }
+     ],
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.18
+     },
+     "cola": 0.45,
+     "pausa": 0.35
+    },
+    {
+     "seg": 1,
+     "lugar": "garua",
+     "lluvia": "fina",
+     "casa": true,
+     "camara": [
+      {
+       "z": 1.2,
+       "y": 40
+      },
+      {
+       "z": 1.3,
+       "y": 60
+      }
+     ],
+     "personajes": [
+      {
+       "id": "gallina",
+       "x": -0.45,
+       "accion": "abrigar",
+       "seco": true,
+       "acciones": [
+        [
+         "f1@0.3",
+         "feliz"
+        ]
+       ]
+      },
+      {
+       "id": "mono",
+       "x": 0.2,
+       "accion": "frio",
+       "mojado": true,
+       "acciones": [
+        [
+         "f1@0.3",
+         "toalla"
+        ]
+       ],
+       "dir": -1
+      }
+     ],
+     "frases": [
+      {
+       "texto": "Venga, mi amor, a secarse.",
+       "quien": "gallina"
+      },
+      {
+       "texto": "Gracias, Clota.",
+       "quien": "mono"
+      }
+     ],
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.15
+     },
+     "inicio": 0.35,
+     "cola": 0.45,
+     "pausa": 0.35
+    },
+    {
+     "seg": 1,
+     "lugar": "cocina",
+     "ventana": "lluvia",
+     "camara": [
+      {
+       "z": 1.3,
+       "y": 80
+      },
+      {
+       "z": 1.42,
+       "y": 90
+      }
+     ],
+     "personajes": [
+      {
+       "id": "gallina",
+       "x": -0.45,
+       "accion": "feliz",
+       "ropa": "delantal"
+      },
+      {
+       "id": "mono",
+       "x": 0.25,
+       "accion": "taza",
+       "ropa": "toalla",
+       "dir": -1
+      }
+     ],
+     "frases": [
+      {
+       "texto": "Agua dulce bien calientita.",
+       "quien": "gallina"
+      },
+      {
+       "texto": "Mmm, qué rico está.",
+       "quien": "mono"
+      }
+     ],
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.1
+     },
+     "inicio": 0.35,
+     "cola": 0.45,
+     "pausa": 0.35
+    },
+    {
+     "seg": 1,
+     "lugar": "cocina",
+     "ventana": "lluvia",
+     "camara": [
+      {
+       "z": 1.25,
+       "y": 70
+      },
+      {
+       "z": 1.35,
+       "y": 80
+      }
+     ],
+     "personajes": [
+      {
+       "id": "gallina",
+       "x": -0.4,
+       "accion": "anotar",
+       "ropa": "delantal"
+      },
+      {
+       "id": "mono",
+       "x": 0.35,
+       "accion": "mirar",
+       "ropa": "toalla",
+       "dir": -1,
+       "acciones": [
+        [
+         "f2",
+         "feliz"
+        ],
+        [
+         "f2+",
+         "mirar"
+        ],
+        [
+         "f4",
+         "triste"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      {
+       "texto": "Jugar en el aguacero: ¡goza!",
+       "quien": "gallina"
+      },
+      {
+       "texto": "¡Sí, gocé muchísimo!",
+       "quien": "mono"
+      },
+      {
+       "texto": "Mojarse y estornudar: no goza.",
+       "quien": "gallina"
+      },
+      {
+       "texto": "Ay, eso no me gustó.",
+       "quien": "mono"
+      }
+     ],
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.1
+     },
+     "inicio": 0.35,
+     "cola": 0.45,
+     "pausa": 0.35
+    },
+    {
+     "seg": 1,
+     "lugar": "cocina",
+     "ventana": "lluvia",
+     "camara": [
+      {
+       "z": 1.25,
+       "y": 70
+      },
+      {
+       "z": 1.32,
+       "y": 75
+      }
+     ],
+     "personajes": [
+      {
+       "id": "gallina",
+       "x": -0.6,
+       "accion": "feliz",
+       "ropa": "delantal"
+      },
+      {
+       "id": "mono",
+       "x": 0,
+       "accion": "feliz",
+       "ropa": "toalla"
+      },
+      {
+       "id": "conejo",
+       "x": 0.6,
+       "accion": "feliz",
+       "ropa": "capa",
+       "dir": -1
+      }
+     ],
+     "frases": [
+      {
+       "texto": "¡Mañana, con capa y botas!",
+       "quien": "conejo"
+      },
+      {
+       "texto": "¡Con capa y botas!",
+       "quien": "mono"
+      },
+      {
+       "texto": "¡Goza y no goza!",
+       "quien": "todos"
+      }
+     ],
+     "ritmo": "junto",
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.1
+     },
+     "inicio": 0.35,
+     "cola": 1.6,
+     "pausa": 0.35
+    }
+   ]
+  }
+ ]
+}

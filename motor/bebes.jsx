@@ -48,10 +48,10 @@ function planBebes(ep, fmt, durs, voz) {
         return Object.assign(f, { id, audio: d > 0, d: d > 0 ? d : Math.max(0.9, 0.42 * words(f.texto).length + 0.3), quien: f.quien || 'narrador' });
       });
       const seg0 = Number(raw.seg) || 20, n = frases.length;
-      const lead = Number(raw.inicio) || (idx === 0 ? 0.9 : 1.2), tail = 1.6;
+      const lead = Number(raw.inicio) || (idx === 0 ? 0.9 : 1.2), tail = raw.cola != null ? Number(raw.cola) : 1.6;
       const sum = frases.reduce((s, f) => s + f.d, 0);
       const maxGap = raw.ritmo === 'junto' ? 1.1 : 6.5;
-      let gap = n > 1 ? clamp((seg0 - lead - tail - sum) / n, 0.5, maxGap) : 0;
+      let gap = n > 1 ? clamp((seg0 - lead - tail - sum) / n, raw.pausa != null ? Number(raw.pausa) : 0.5, maxGap) : 0;
       let u = lead;
       frases.forEach((f, fi) => { f.t0 = u; f.t1 = u + f.d; u = f.t1 + (fi < n - 1 ? gap : 0); });
       const dur = Math.max(seg0, u + tail);
@@ -70,7 +70,7 @@ function planBebes(ep, fmt, durs, voz) {
         aparece: c.aparece != null ? marca(c.aparece) : null, dir: c.dir === -1 ? -1 : 1,
         acciones: (c.acciones || []).map(([en, a]) => [marca(en), a]).sort((A, B) => A[0] - B[0]),
         desde: c.desde != null ? Number(c.desde) : null, hasta: c.hasta != null ? Number(c.hasta) : null, k: c.k,
-        sombrero: !!c.sombrero, hastaX: c.hasta_x != null ? Number(c.hasta_x) : null, hamaca: !!c.hamaca, y: Number(c.y) || 0, encarreta: !!c.carreta,
+        sombrero: !!c.sombrero, hastaX: c.hasta_x != null ? Number(c.hasta_x) : null, hamaca: !!c.hamaca, y: Number(c.y) || 0, encarreta: !!c.carreta, mojado: !!c.mojado,
       }));
       // Cosas que aparecen en un momento: números grandes, burbujas con un objeto ("como una fresa").
       const numeros = (raw.numeros || []).map(([en, txt, x, dura]) => ({ t: marca(en), txt: String(txt), x: Number(x) || 0, dura: Number(dura) || 3.2 }));
@@ -188,7 +188,42 @@ function pose(c, u, T, sc, fmt, n) {
     }
     case 'limpiarse': { p.rArm = 150 + 6 * Math.sin(T * 4); p.sostieneArriba = <Servilleta />; p.eyes = 'happy'; p.tilt = 4 * Math.sin(T * 1.6); break; }
     case 'feliz': { p.eyes = Math.sin(T * 0.8 + c.seed) > -0.3 ? 'happy' : p.eyes; p.lean = 4 * Math.sin(T * 1.2); p.rArm = -40 + 10 * Math.sin(T * 1.2); p.lArm = 40 - 10 * Math.sin(T * 1.2); break; }
+    // ── Short «El aguacero de la tarde» ──
+    case 'llamar': { ola(1); p.lean = -3; p.eyes = Math.sin(T * 0.8) > -0.3 ? 'happy' : p.eyes; break; }
+    case 'frio': { p.x += 4 * Math.sin(T * 21); p.rArm = 52 + 4 * Math.sin(T * 21); p.lArm = -52 - 4 * Math.sin(T * 21); p.mood = 'o'; p.tilt = 4; p.sy *= 0.97; break; }
+    case 'estornudar': {
+      const f = sc.frases[0], ta = f ? lerp(f.t0, f.t1, 0.72) : 2;
+      const q = seg(u, ta - 1.6, ta), s2 = seg(u, ta, ta + 0.35) * (1 - seg(u, ta + 0.9, ta + 1.6));
+      if (u < ta) { p.tilt = -10 * q; p.eyes = q > 0.3 ? 'sleep' : p.eyes; p.mood = 'o'; p.mouth = 0.2 + 0.3 * q; p.lean = -4 * q; }
+      else if (s2 > 0) { p.lean = 9 * s2; p.tilt = 8 * s2; p.eyes = 'sleep'; p.mood = 'o'; p.mouth = 0.3; p.rArm = lerp(p.rArm, -150, s2); }
+      else { p.eyes = 'happy'; }
+      break;
+    }
+    case 'toalla': { p.rArm = 44; p.lArm = -44; p.eyes = Math.sin(T * 0.8) > -0.4 ? 'happy' : p.eyes; p.lean = 2 * Math.sin(T * 1.1); break; }
+    case 'abrigar': { p.rArm = -70 + 4 * Math.sin(T * 1.5); p.lArm = 70; p.sostiene = <ToallaAbierta />; p.lean = 4; p.eyes = 'happy'; break; }
+    case 'taza': {
+      const per = 4.2, ph = ((u + c.seed) % per) / per, up = Math.sin(clamp((ph - 0.15) / 0.5, 0, 1) * Math.PI);
+      p.rArm = lerp(-40, 120, up); p.lArm = -40;
+      const obj = <Taza T={T} />;
+      if (up > 0.6) p.sostieneArriba = obj; else p.sostiene = obj;
+      if (up > 0.7) p.eyes = 'happy';
+      break;
+    }
+    case 'anotar': { p.food = 'libreta'; const habla = sc.frases.some((f) => f.quien === c.id && u >= f.t0 && u < f.t1); p.rArm = 38 + (habla ? 4 * Math.sin(T * 14) : 0); break; }
+    case 'triste': { p.tilt = 9; p.lean = 3; p.look = -0.3; p.rArm = 30; p.lArm = -30; break; }
     default: break;
+  }
+  // Toalla amarilla (Chito después de mojarse) y capa roja con botas (Chepe).
+  if (c.ropa === 'toalla' || a === 'toalla') {
+    const t0 = c.acciones.find(([, x]) => x === 'toalla'), op = c.ropa === 'toalla' ? 1 : seg(u, t0 ? t0[0] : 0, (t0 ? t0[0] : 0) + 0.6);
+    p.encima = (g) => <Toalla g={g} op={op} />; p.sombrero = (g) => <Capucha g={g} op={op} c="#FFE29A" />;
+    if (c.ropa === 'toalla' && a !== 'taza') { p.rArm = Math.max(p.rArm, 30); p.lArm = Math.min(p.lArm, -30); }
+  }
+  if (c.ropa === 'capa') p.encima = (g) => <Capa g={g} />;
+  // Personaje que habla: mueve la boquita mientras suena su frase.
+  if (sc.frases.some((f) => (f.quien === c.id || f.quien === 'todos') && u >= f.t0 + 0.05 && u < f.t1 - 0.05)) {
+    p.mouth = Math.max(p.mouth, 0.2 + 0.28 * Math.abs(Math.sin(T * 10 + c.seed)));
+    if (p.mood === 'smile' || p.mood === 'o') p.mood = 'smile';
   }
   if (c.ropa === 'delantal') p.encima = (g) => <Delantal g={g} />;
   if (c.sentada) p.y += 72; // sentadita en su silla, detrás de la mesa
@@ -196,6 +231,67 @@ function pose(c, u, T, sc, fmt, n) {
   if (c.hamaca) { const m = Math.sin(T * 0.85), r = p.x / 580; p.x += 26 * m; p.y += 25 + 100 * r * r; p.lean += -4 * m; p.noSombra = true; }
   if (c.encarreta && sc.raw.carreta) { p.x = carretaX(sc, u, halfW) - 60; p.y += 140 + (u > sc.carretaT0 ? 4 * Math.abs(Math.sin(T * 3)) : 0); }
   return p;
+}
+
+// ── Short del aguacero: toalla, capa, taza, barquito, riíto ──────────────
+function Toalla({ g, op = 1 }) {
+  const rx = g.bodyRx * 1.12, ry = g.bodyRy * 1.04, cy = g.bodyCy + 4;
+  return (
+    <g opacity={op}>
+      <ellipse cx="0" cy={cy} rx={rx} ry={ry} fill="#FFE29A" {...L(4)} />
+      {[-0.5, 0, 0.5].map((k) => <path key={k} d={`M ${-rx * 0.9} ${cy + k * ry} Q 0 ${cy + k * ry + 12} ${rx * 0.9} ${cy + k * ry}`} fill="none" stroke="#FFFFFF" strokeWidth="9" opacity="0.8" />)}
+      <path d={`M 0 ${cy - ry} L 6 ${cy + ry * 0.9}`} {...L(3)} fill="none" />
+    </g>
+  );
+}
+function Capucha({ g, op = 1, c }) {
+  const rx = g.headRx + 10, ry = g.headRy + 12, y0 = g.headCy + g.headRy * 0.35;
+  return <g opacity={op}><path d={`M ${-rx} ${y0} A ${rx} ${ry} 0 0 1 ${rx} ${y0}`} fill="none" stroke={TINTA} strokeWidth="34" strokeLinecap="round" /><path d={`M ${-rx} ${y0} A ${rx} ${ry} 0 0 1 ${rx} ${y0}`} fill="none" stroke={c} strokeWidth="26" strokeLinecap="round" /></g>;
+}
+function Capa({ g }) {
+  const w = g.bodyRx, y0 = g.bodyCy - g.bodyRy * 0.85, y1 = g.bodyCy + g.bodyRy * 0.95;
+  return (
+    <g>
+      <path d={`M ${-w * 0.55} ${y0} Q 0 ${y0 - 14} ${w * 0.55} ${y0} L ${w * 1.12} ${y1} Q 0 ${y1 + 16} ${-w * 1.12} ${y1} Z`} fill="#F28C8C" {...L(4)} />
+      {[0.3, 0.55, 0.8].map((k) => <circle key={k} cx="0" cy={lerp(y0, y1, k)} r="7" fill="#FFE29A" {...L(2.5)} />)}
+      {[-1, 1].map((s) => <rect key={s} x={g.footDX * s - 34} y={-58} width="68" height="58" rx="18" fill="#FFD25E" {...L(4)} />)}
+    </g>
+  );
+}
+function ToallaAbierta() {
+  return <g transform="rotate(-8)"><rect x="-40" y="-20" width="150" height="190" rx="22" fill="#FFE29A" {...L(4)} />{[30, 80, 130].map((y) => <path key={y} d={`M -34 ${y} L 104 ${y}`} stroke="#FFFFFF" strokeWidth="9" opacity="0.8" />)}</g>;
+}
+function Taza({ T }) {
+  return (
+    <g>
+      <path d="M -28 -50 L 28 -50 L 22 8 L -22 8 Z" fill="#F7B7C9" {...L(4)} />
+      <ellipse cx="0" cy="-50" rx="28" ry="8" fill="#C98B4F" {...L(3)} />
+      <path d="M 27 -38 q 22 6 0 30" fill="none" {...L(6)} />
+      <Vapor x={0} y={-60} T={T} s={0.45} />
+    </g>
+  );
+}
+function Barquito({ x, y, T }) {
+  const b = 5 * Math.sin(T * 2.2), r = 3 * Math.sin(T * 1.7);
+  return (
+    <g transform={`translate(${x} ${y + b}) rotate(${r})`}>
+      <path d="M -70 -14 L 70 -14 L 44 22 L -44 22 Z" fill="#FFFDF4" {...L(4)} />
+      <path d="M -34 -14 L 0 -86 L 34 -14 Z" fill="#FFFFFF" {...L(4)} />
+      <path d="M 0 -86 L 0 -14" stroke="#E7DCC8" strokeWidth="4" />
+      {[0, 1].map((j) => { const q = ((T * 0.6 + j / 2) % 1); return <path key={j} d={`M ${-80 - q * 90} 26 q 20 -8 40 0`} fill="none" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" opacity={1 - q} />; })}
+    </g>
+  );
+}
+function Riito({ halfW, T }) {
+  const W = halfW + 500, y0 = 70, y1 = 150;
+  return (
+    <g>
+      <path d={`M ${-W} ${y0} Q ${-W / 2} ${y0 - 14} 0 ${y0} Q ${W / 2} ${y0 + 14} ${W} ${y0} L ${W} ${y1} Q ${W / 2} ${y1 + 12} 0 ${y1} Q ${-W / 2} ${y1 - 12} ${-W} ${y1} Z`} fill="#A9CFE8" {...L(4)} />
+      {Array.from({ length: 9 }).map((_, j) => { const x = -W + ((j * 311 + T * 90) % (W * 2)); return <path key={j} d={`M ${x} ${y0 + 34 + (j % 3) * 12} q 25 -8 50 0`} fill="none" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" opacity="0.8" />; })}
+      {[[-0.8, 0], [-0.3, 1], [0.25, 0], [0.7, 1]].map(([k, top], j) => <ellipse key={j} cx={k * halfW * 1.2} cy={top ? y0 - 4 : y1 + 4} rx="26" ry="14" fill="#C9C2B8" {...L(3)} />)}
+      {[[-0.55, '#9CCB8E'], [0.5, '#B4D99C']].map(([k, c], j) => <path key={`h${j}`} transform={`translate(${k * halfW * 1.1} ${y1 + 6}) rotate(-20)`} d="M 0 0 Q 22 -20 44 0 Q 22 20 0 0 Z" fill={c} {...L(3)} />)}
+    </g>
+  );
 }
 
 // ── Utensilios y comida ────────────────────────────────────────────────────
@@ -577,13 +673,14 @@ function Fondo({ sc, u, T, fmt }) {
           <rect x={-ancho} y="-1300" width={ancho * 2} height="1300" fill="#F3DCBA" />
           {Array.from({ length: 22 }).map((_, j) => <path key={j} d={`M ${-ancho + j * 140} -1300 L ${-ancho + j * 140} 0`} stroke="#E6C9A1" strokeWidth="5" />)}
           {/* Ventana con vista al cafetal */}
-          <g transform="translate(-470 -560)">
+          <g transform={sc.raw.ventana ? 'translate(0 -600)' : 'translate(-470 -560)'}>
             <rect x="-210" y="-170" width="420" height="300" rx="16" fill="#C9E7F2" />
             <clipPath id={`vent-${sc.idx}`}><rect x="-210" y="-170" width="420" height="300" rx="16" /></clipPath>
             <g clipPath={`url(#vent-${sc.idx})`}>
-              <Sol x={120} y={-110} s={0.45} T={T} />
+              {sc.raw.ventana === 'lluvia' ? <rect x="-210" y="-170" width="420" height="300" fill="#D5DCE3" /> : <Sol x={120} y={-110} s={0.45} T={T} />}
               <ellipse cx="-120" cy="110" rx="260" ry="120" fill={P.loma1} {...L(3)} />
               <ellipse cx="160" cy="130" rx="260" ry="120" fill={P.loma2} {...L(3)} />
+              {sc.raw.ventana === 'lluvia' && <g transform="translate(0 40)"><Lluvia W={240} T={T} n={14} /></g>}
               {[[-170, 50], [-90, 40], [-10, 55], [70, 60], [150, 62], [-130, 95], [-40, 100], [50, 105], [140, 108]].map(([cx, cy], j) => <g key={j}><circle cx={cx} cy={cy} r="20" fill={P.cafe} {...L(2.5)} /><circle cx={cx + 5} cy={cy - 5} r="3.5" fill={P.grano} /></g>)}
             </g>
             <rect x="-210" y="-170" width="420" height="300" rx="16" fill="none" stroke={P.maderaO} strokeWidth="22" />
@@ -611,7 +708,9 @@ function Fondo({ sc, u, T, fmt }) {
           <Lomas W={W} y={-40} c={['#BCD3B4', '#AFCBA6', '#C9DDC0']} />
           <rect x={-W} y="0" width={W * 2} height="900" fill="#B6D2A4" />
           <path d={`M ${-W} 0 Q 0 -24 ${W} 0`} fill="#B6D2A4" {...L(4)} />
-          <path d={`M ${-W} 120 Q -300 60 0 90 Q 300 120 ${W} 70 L ${W} 170 Q 300 210 0 180 Q -300 150 ${-W} 210 Z`} fill="#E6D3B3" {...L(3.5)} />
+          {sc.raw.casa && <g transform={`translate(${-0.45 * fmt.W / fmt.s / 2} 0)`}><Casita x={0} s={0.95} /><path d="M -300 -290 L 300 -290 L 330 -250 L -330 -250 Z" fill={P.tejaS} {...L(4)} /></g>}
+          {!sc.raw.riito && <path d={`M ${-W} 120 Q -300 60 0 90 Q 300 120 ${W} 70 L ${W} 170 Q 300 210 0 180 Q -300 150 ${-W} 210 Z`} fill="#E6D3B3" {...L(3.5)} />}
+          {sc.raw.riito && <rect x={-W} y="160" width={W * 2} height="200" fill="#E6D3B3" />}
           <Flores xs={[-860, -620, 640, 880]} y={60} s={1} />
         </g>
       );
@@ -705,6 +804,16 @@ function Delante({ sc, poses, fmt, T, u }) {
   if (sc.raw.hamaca) out.push(<HamacaFrente key="hf" T={T} />);
   if (sc.raw.cobija) out.push(<Cobija key="co" halfW={halfW} />);
   if (sc.raw.gotas && poses[0]) { const c = poses[0]; for (let j = 0; j < 6; j++) { const ph = (T * 0.55 + j / 6) % 1, x = c.x - 70 + ((j * 53) % 150), y0 = -200 * c.k; out.push(<path key={`g${j}`} transform={`translate(${x} ${lerp(y0 - 420, y0, ph)}) scale(1.6)`} d="M 0 -14 Q 9 2 0 10 Q -9 2 0 -14 Z" fill="#BFDDF0" {...L(2.5)} opacity={ph < 0.92 ? 0.95 : 0} />); } }
+  if (sc.raw.riito) {
+    out.push(<Riito key="ri" halfW={halfW} T={T} />);
+    const ci = sc.cast.findIndex((c) => c.id === 'mono'), c = poses[ci];
+    out.push(<Barquito key="ba" x={(c ? c.x : 0) + 150} y={100} T={T} />);
+  }
+  sc.cast.forEach((cc, j) => {
+    const c = poses[j];
+    if (!cc.mojado || !c || c.hidden) return;
+    for (let d = 0; d < 4; d++) { const ph = (T * 0.7 + d / 4) % 1, x = c.x + (d % 2 ? 1 : -1) * (30 + d * 12) * c.k; out.push(<path key={`d${j}${d}`} transform={`translate(${x} ${lerp(-110 * c.k, 0, ph)})`} d="M 0 -12 Q 8 2 0 9 Q -8 2 0 -12 Z" fill="#BFDDF0" {...L(2)} opacity={1 - ph * 0.6} />); }
+  });
   if (sc.raw.charco) {
     const cx = (Number(sc.raw.charco.x) || 0) * halfW * 0.92;
     out.push(<ellipse key="ch" cx={cx} cy={40} rx={190} ry={34} fill="#A9CFE8" {...L(4)} />);
@@ -756,7 +865,7 @@ function Escena({ sc, u, T, fmt }) {
           return <g key={j}>{!sc.cast[j].sentada && !sc.cast[j].hamaca && <ellipse cx={p.x} cy={6} rx={78 * p.k * p.pop} ry={12 * p.k} fill={TINTA} opacity="0.12" />}<Character id={sc.cast[j].id} p={Object.assign({}, p, { noShadow: true })} T={T} /></g>;
         })}
         <Delante sc={sc} poses={poses} fmt={fmt} T={T} u={u} />
-        {sc.raw.lluvia && <Lluvia W={fmt.W / fmt.s / 2 + 300} T={T} />}
+        {sc.raw.lluvia && <Lluvia W={fmt.W / fmt.s / 2 + 300} T={T} n={sc.raw.lluvia === 'fina' ? 16 : 46} />}
         {sc.muestras.map((m, j) => <Burbuja key={`m${j}`} m={m} u={u} T={T} />)}
         {sc.numeros.map((m, j) => <Numero key={`n${j}`} m={m} u={u} />)}
       </g>
