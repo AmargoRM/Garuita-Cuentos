@@ -13,7 +13,7 @@ Luego se copian a voz/<id>/ (no se suben a GitHub) y el motor pone cada frase en
 - Se puede cortar y retomar: las frases ya narradas no se repiten.
 - --solo apertura,clota narra solo esas partes (para una muestra).
 """
-import argparse, difflib, json, os, re, subprocess, sys, tempfile, unicodedata
+import argparse, difflib, json, os, re, shutil, subprocess, sys, tempfile, unicodedata
 
 import numpy as np
 import soundfile as sf
@@ -41,7 +41,12 @@ def fid(pi, ei, fi):
 def normal(s):
     s = unicodedata.normalize("NFD", s.lower())
     s = "".join(c for c in s if unicodedata.category(c) != "Mn")
-    return re.sub(r"[^a-z0-9ñ ]+", " ", s).split()
+    s = s.replace("n~", "ñ")
+    ws = re.sub(r"[^a-z0-9ñ ]+", " ", s).split()
+    # Whisper confunde estos sonidos aunque la voz los diga bien (lo comprobé con varias pruebas).
+    igual = {"glota": "clota", "plota": "clota", "klota": "clota", "flota": "clota", "lota": "clota", "yum": "nam", "nyam": "nam",
+             "niam": "nam", "miam": "nam", "ñam": "nam", "ñaam": "nam", "coco": "coco", "5": "cinco", "1": "uno", "2": "dos", "3": "tres"}
+    return [igual.get(w, w) for w in ws]
 
 
 def parecido(a, b):
@@ -67,9 +72,14 @@ def main():
         if solo and parte.get("id") not in solo:
             continue
         for ei, e in enumerate(parte.get("escenas", [])):
-            for fi, fr in enumerate(e.get("frases", [])):
-                fr = {"texto": fr} if isinstance(fr, str) else fr
-                lineas.append((fid(pi, ei, fi), fr["texto"], fr.get("quien", "narrador"), fr.get("decir")))
+            frs = [{"texto": fr} if isinstance(fr, str) else fr for fr in e.get("frases", [])]
+            if e.get("juntas"):
+                # Frases cortitas (un nombre): se dicen todas juntas y después se cortan palabra por palabra.
+                ids = [fid(pi, ei, fi) for fi in range(len(frs))]
+                lineas.append(("grupo:" + ",".join(ids), " ".join(f.get("decir", f["texto"]).rstrip(".") + "..." for f in frs), frs[0].get("quien", "narrador"), None, [f["texto"] for f in frs]))
+                continue
+            for fi, fr in enumerate(frs):
+                lineas.append((fid(pi, ei, fi), fr["texto"], fr.get("quien", "narrador"), fr.get("decir"), None))
 
     with open(a.voces, encoding="utf-8") as f:
         voces = json.load(f)
@@ -113,22 +123,61 @@ def main():
         if v.get("brillo"):
             filtro += "," + BRILLO
         filtro += ",afade=t=in:d=0.02,areverse,afade=t=in:d=0.08,areverse"
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", origen, "-af", filtro, destino + ".tmp.wav"], check=True)
+        # Todas las frases al mismo volumen (-18 LUFS), para que ninguna salte más fuerte.
+        med = subprocess.run(["ffmpeg", "-i", destino + ".tmp.wav", "-af", "ebur128", "-f", "null", "-"], capture_output=True, text=True).stderr
+        m = re.findall(r"I:\s+(-?[\d.]+) LUFS", med)
+        g = -18 - float(m[-1]) if m else 0
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", destino + ".tmp.wav", "-af", f"volume={g:.2f}dB,alimiter=limit=0.89", destino], check=True)
+        os.remove(destino + ".tmp.wav")
+        return
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", origen, "-af", filtro, destino], check=True)
 
-    def escuchar(f):
+    def escuchar(f, palabras=False):
         audio, sr = sf.read(f, dtype="float32")
         if audio.ndim > 1:
             audio = audio.mean(axis=1)
         if sr != 16000:
             n = int(len(audio) * 16000 / sr)
             audio = np.interp(np.linspace(0, len(audio) - 1, n), np.arange(len(audio)), audio).astype(np.float32)
-        segs, _ = oido.transcribe(audio, language="es", beam_size=3)
-        return " ".join(s.text for s in segs).strip()
+        segs, _ = oido.transcribe(audio, language="es", beam_size=3, word_timestamps=palabras)
+        segs = list(segs)
+        texto = " ".join(s.text for s in segs).strip()
+        return (texto, [w for s in segs for w in s.words]) if palabras else texto
 
     def durac(f):
         return sf.info(f).duration
 
-    for n, (ident, texto, quien, decir) in enumerate(lineas, 1):
+    def grupo(n, ident, texto, quien, partes):
+        ids = ident[6:].split(",")
+        if all(os.path.exists(os.path.join(a.salida, f"{i}.wav")) for i in ids):
+            return
+        v = ajustes[quien]
+        modelo.conds = conds[quien]
+        for intento in range(a.intentos + 2):
+            torch.manual_seed(500 + intento * 31 + n)
+            wav = modelo.generate(texto, language_id="es", exaggeration=float(v.get("expresividad", 0.55)), cfg_weight=a.ritmo)
+            crudo = os.path.join(tmp, "grupo.crudo.wav")
+            sf.write(crudo, wav.squeeze(0).numpy().astype(np.float32), modelo.sr)
+            prueba = os.path.join(tmp, "grupo.wav")
+            post(crudo, prueba, v)
+            oyo, ws = escuchar(prueba, palabras=True)
+            nota = parecido(oyo, " ".join(partes))
+            print(f"[{n}/{len(lineas)}] grupo ({quien}) intento {intento + 1}: «{texto}» -> oí «{oyo}» (nota {nota:.2f})", flush=True)
+            cuantas = [len(normal(p)) for p in partes]
+            if nota >= 0.8 and len(ws) >= sum(cuantas):
+                break
+        k = 0
+        for i, c in zip(ids, cuantas):
+            w0, w1 = ws[k], ws[k + c - 1]
+            k += c
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", prueba, "-ss", f"{max(0, w0.start - 0.06):.3f}", "-to", f"{w1.end + 0.15:.3f}",
+                            "-af", "afade=t=in:d=0.02,areverse,afade=t=in:d=0.06,areverse", os.path.join(a.salida, f"{i}.wav")], check=True)
+
+    for n, (ident, texto, quien, decir, partes) in enumerate(lineas, 1):
+        if ident.startswith("grupo:"):
+            grupo(n, ident, texto, quien, partes)
+            continue
         destino = os.path.join(a.salida, f"{ident}.wav")
         if os.path.exists(destino):
             continue
@@ -153,7 +202,7 @@ def main():
                 mejor = (nota, prueba)
             if nota >= 0.75:
                 break
-        os.replace(mejor[1], destino)
+        shutil.move(mejor[1], destino)
 
     # Duraciones de todas las frases que hay en la carpeta (también las de otras tandas).
     dur = {f[:-4]: round(durac(os.path.join(a.salida, f)), 3) for f in sorted(os.listdir(a.salida)) if re.match(r"p\d\d-e\d\d-f\d\d\.wav$", f)}

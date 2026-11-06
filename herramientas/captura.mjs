@@ -35,6 +35,8 @@ const sinVoz = opt('sin-voz', false) === true;
 const sinMusica = opt('sin-musica', false) === true;
 const sinEfectos = opt('sin-efectos', false) === true;
 const volumenMusica = Number(opt('volumen-musica', 1)) || 1;
+// --solo-sonido: no vuelve a dibujar los cuadros; usa el video ya grabado y solo rehace la mezcla de sonido.
+const soloSonido = opt('solo-sonido', false) === true;
 const [W, H] = formato === 'vertical' ? [1080, 1920] : [1920, 1080];
 
 if (!fs.existsSync(path.join(raiz, 'publico', 'motor.js'))) {
@@ -77,18 +79,23 @@ try {
     }
   } else {
     const archivo = path.join(salida, `${cuento}-${formato}.mp4`);
-    const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-',
+    if (soloSonido) {
+      const mudo = archivo.replace(/\.mp4$/, '.mudo.mp4');
+      spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', archivo, '-an', '-c:v', 'copy', mudo]);
+      fs.renameSync(mudo, archivo);
+    }
+    const ff = soloSonido ? null : spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-',
       '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'medium', '-crf', '18', '-movflags', '+faststart', archivo],
       { stdio: ['pipe', 'inherit', 'inherit'] });
-    const termino = new Promise((r, j) => ff.on('close', (c) => (c === 0 ? r() : j(new Error(`ffmpeg terminó con código ${c}`)))));
-    const total = Math.round((hasta - desde) * fps);
+    const termino = soloSonido ? Promise.resolve() : new Promise((r, j) => ff.on('close', (c) => (c === 0 ? r() : j(new Error(`ffmpeg terminó con código ${c}`)))));
+    const total = soloSonido ? 0 : Math.round((hasta - desde) * fps);
     for (let i = 0; i < total; i++) {
       await ir(desde + i / fps);
       const buf = await lienzo.screenshot({ type: 'jpeg', quality: 92 });
       if (!ff.stdin.write(buf)) await new Promise((r) => ff.stdin.once('drain', r));
       if (i % fps === 0) process.stdout.write(`\r  cuadro ${i}/${total}`);
     }
-    ff.stdin.end();
+    if (ff) ff.stdin.end();
     await termino;
     const usados = narracion.filter((n) => n.inicio >= desde && n.inicio < hasta);
     process.stdout.write(`\n  armando el sonido: ${[usados.length && `${usados.length} audios de narración`, !sinMusica && 'música', !sinEfectos && 'efectos'].filter(Boolean).join(', ') || 'nada'}`);

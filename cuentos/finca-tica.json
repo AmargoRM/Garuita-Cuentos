@@ -75,7 +75,8 @@
       "Y Bruno.",
       "¡Hola, amiguitos!"
      ],
-     "ritmo": "junto"
+     "ritmo": "junto",
+     "juntas": true
     },
     {
      "seg": 15,
@@ -169,12 +170,12 @@
       {
        "id": "gallina-suave",
        "en": "f2+",
-       "vol": 0.5
+       "vol": 0.28
       },
       {
        "id": "gallina-suave",
        "en": "f3+",
-       "vol": 0.5
+       "vol": 0.28
       }
      ],
      "camara": [
@@ -252,9 +253,18 @@
      ],
      "frases": [
       "¡Gallo pinto! Qué rico.",
-      "Clota come despacito. Ñam, ñam, ñam.",
-      "¿Cómo hacemos? Ñam, ñam.",
-      "Una tortilla también. Ñam."
+      {
+       "texto": "Clota come despacito. Ñam, ñam, ñam.",
+       "decir": "Clota come despacito. Ñaam, ñaam, ñaam."
+      },
+      {
+       "texto": "¿Cómo hacemos? Ñam, ñam.",
+       "decir": "¿Cómo hacemos? Ñaam, ñaam."
+      },
+      {
+       "texto": "Una tortilla también. Ñam.",
+       "decir": "Una tortilla también. Ñaam."
+      }
      ]
     },
     {
@@ -295,7 +305,7 @@
       {
        "id": "gallina-suave",
        "en": "f3+",
-       "vol": 0.45
+       "vol": 0.28
       }
      ]
     }
