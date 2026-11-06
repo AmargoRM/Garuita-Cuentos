@@ -17,6 +17,7 @@ import '@fontsource/luckiest-guy/400.css';
 import './escenario.jsx';
 import './story-engine.jsx';
 import './musica.js';
+import './bebes.jsx';
 
 const q = new URLSearchParams(location.search);
 const nombre = (q.get('cuento') || 'ejemplo').replace(/[^a-zA-Z0-9_-]/g, '');
@@ -82,6 +83,14 @@ async function iniciar() {
     if (!r.ok) throw new Error(`No encontré cuentos/${nombre}.json`);
     const cuento = await r.json();
     const narracion = q.get('narracion') === 'no' ? null : await cargarNarracion(nombre);
+    if (cuento.tipo === 'bebes') {
+      // Episodio para bebés (motor/bebes.jsx): el plan trae la lista de audios con su segundo exacto.
+      raiz.render(<window.EpisodioBebes story={cuento} format={formato} duraciones={narracion && narracion.frases}
+        onPlan={(p) => { window.__garuitaPlan = p; window.__garuitaNarracion = q.get('narracion') === 'no' ? p.audios.filter((a) => a.archivo.startsWith('sonidos/')) : p.audios; }} />);
+      await document.fonts.ready;
+      window.__garuitaListo = true;
+      return;
+    }
     raiz.render(
       <window.StoryPlayer story={cuento} format={formato} age={edad}
         narracion={narracion} onPlan={(p) => anotarPlan(p, narracion)}

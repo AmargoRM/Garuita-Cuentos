@@ -1,8 +1,10 @@
 // Garuita Cuentos — motor de cuentos. Plans a story JSON into timed scenes and
 // renders them on the CompositionStage of motor/escenario.jsx (horizontal or vertical).
 (function () {
-const INK = '#2A1A12';
+let INK = '#2A1A12';
 const OUT = { stroke: INK, strokeWidth: 6, strokeLinejoin: 'round', strokeLinecap: 'round' };
+// Estilo de línea (el canal de bebés usa una línea café suave y más delgada).
+function setTinta(color, ancho) { INK = color; OUT.stroke = color; OUT.strokeWidth = ancho; }
 const FD = "'Luckiest Guy', 'Fredoka', system-ui, sans-serif";
 const FT = "'Fredoka', system-ui, sans-serif";
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -520,7 +522,7 @@ function Character({ id, p, T }) {
   const arm = (side, rot) => sp.wing
     ? (<g transform={`translate(${side * g.armX} ${g.armY}) rotate(${rot})`}><Blob cx={0} cy={g.armLen * 0.55} rx={24} ry={g.armLen * 0.68} fill={sp.body} shade={sp.bodyS} hi={false} /></g>)
     : <Arm x={side * g.armX} y={g.armY} rot={rot} len={g.armLen} w={g.armW} fill={sp.arm || sp.fur} hand={sp.hand} hr={g.handR} />;
-  const hp = p.food ? handPos(g, 1, p.rArm) : null;
+  const hp = p.food || p.sostiene || p.sostieneArriba ? handPos(g, 1, p.rArm) : null;
   return (
     <g>
       {!p.noShadow && <ellipse cx={p.x} cy={6} rx={Math.max(30, 80 - Math.min(yy, 220) * 0.18) * k} ry={12 * k} fill={INK} opacity="0.14" />}
@@ -530,9 +532,12 @@ function Character({ id, p, T }) {
         <Blob cx={0} cy={g.bodyCy} rx={g.bodyRx} ry={g.bodyRy} fill={sp.body} shade={sp.bodyS} />
         {sp.belly && <Blob cx={0} cy={g.bellyCy} rx={g.bellyRx} ry={g.bellyRy} fill={sp.belly} shade={sp.bellyS} hi={false} />}
         {sp.deco && sp.deco(p, T)}
+        {p.encima && p.encima(g)}
         {arm(-1, p.lArm)}
+        {p.sostieneAtras && hp && <g transform={`translate(${hp.x} ${hp.y})`}>{p.sostieneAtras}</g>}
         {arm(1, p.rArm)}
-        {hp && <Food kind={p.food} x={hp.x} y={hp.y} left={1 - p.bites * 0.3} />}
+        {hp && p.food && <Food kind={p.food} x={hp.x} y={hp.y} left={1 - p.bites * 0.3} />}
+        {hp && p.sostiene && <g transform={`translate(${hp.x} ${hp.y})`}>{p.sostiene}</g>}
         <g transform={`rotate(${p.tilt} 0 ${g.headCy + 60})`}>
           {sp.ears && sp.ears(p, T)}
           <Blob cx={0} cy={g.headCy} rx={g.headRx} ry={g.headRy} fill={sp.fur} shade={sp.furS} />
@@ -542,7 +547,9 @@ function Character({ id, p, T }) {
           <Cheeks y={g.cheekY} dx={g.cheekDX} c={sp.cheek} />
           {sp.face ? sp.face(p, T) : <MouthX x={0} y={g.mouthY} w={28} p={p} />}
           {sp.top && sp.top(p, T)}
+          {p.sombrero && p.sombrero(g)}
         </g>
+        {hp && p.sostieneArriba && <g transform={`translate(${hp.x} ${hp.y})`}>{p.sostieneArriba}</g>}
       </g>
     </g>
   );
@@ -1558,5 +1565,7 @@ function StoryPlayer(props) {
   );
 }
 
-Object.assign(window, { StoryPlayer, GaruitaSFX: SFX, TC_ENGINE: { sanitizeStory, planStory, IDS, ACTIONS, ENTRIES, PLACES, TRASH, MOODS } });
+Object.assign(window, { StoryPlayer, GaruitaSFX: SFX, TC_ENGINE: { sanitizeStory, planStory, IDS, ACTIONS, ENTRIES, PLACES, TRASH, MOODS,
+  // Piezas que reutiliza el motor de bebés (motor/bebes.jsx).
+  Character, SPECIES, handPos, Blob, Cheeks, EyeX, Cloud, Tree, Flower, Food, Mango, setTinta, OUT, tinta: () => INK } });
 })();

@@ -125,8 +125,9 @@
   // Dibuja toda la música del video. `noche(t)` dice si en el segundo t es de noche y
   // `animo(t)` cómo va la música en ese momento: tranquila, accion, fiesta, triste o silencio
   // (null = la de siempre).
-  function musica(ctx, destino, { clave, largo, noche, animo = () => null }) {
+  function musica(ctx, destino, { clave, largo, noche, animo = () => null, bpm }) {
     const m = componer(clave);
+    if (bpm) m.bpm = bpm; // canal de bebés: más lento
     const pulso = 60 / m.bpm, octavo = pulso / 2, compas = pulso * 4;
     const wet = sala(ctx), gw = ctx.createGain(); gw.gain.value = 0.22; wet.connect(gw); gw.connect(destino);
     const bus = ctx.createGain(); bus.gain.value = 1; bus.connect(destino); bus.connect(wet);
@@ -147,10 +148,20 @@
         tocar(ctx, bus, 'bajo', raiz, t0, 0.14);
         continue;
       }
-      if (noche(t0 + 0.1)) {
+      if (noche(t0 + 0.1) || an === 'cuna') {
         // Noche: cajita de música en arpegio lento y bajo largo.
         [0, 1, 2, 1].forEach((k, i) => tocar(ctx, bus, 'caja', ac[k] + 12, t0 + i * pulso, 0.10, i % 2 ? 0.3 : -0.3));
         tocar(ctx, bus, 'bajo', raiz, t0, 0.18);
+        continue;
+      }
+      if (an === 'suave' || an === 'canto') {
+        // Bebés: ukelele suave en tiempos fuertes, bajo largo y melodía de marimba bajita.
+        // Sin maracas ni tambor. En "canto" la melodía va más presente (acompaña la canción).
+        const canto = an === 'canto';
+        [0, 4].forEach((p8, j) => [ac[0], ac[1], ac[2]].forEach((nn, i) => tocar(ctx, bus, 'uke', nn, t0 + p8 * octavo + i * 0.03, (canto ? 0.09 : 0.065) * (j ? 0.8 : 1), -0.3)));
+        tocar(ctx, bus, 'bajo', raiz, t0, 0.2);
+        if (forma === 'L') { tocar(ctx, bus, 'caja', ac[2] + 12, t0, 0.05, 0.25); tocar(ctx, bus, 'caja', ac[1] + 12, t0 + 2 * pulso, 0.04, 0.25); }
+        else frase[enBloque].forEach(([p8, g]) => tocar(ctx, bus, canto ? 'marimba' : 'caja', grado(m.tonica, g) + (canto ? 0 : 12), t0 + p8 * octavo, canto ? 0.2 : 0.06, 0.2));
         continue;
       }
       const calma = an === 'tranquila', accion = an === 'accion' || an === 'fiesta';
@@ -234,7 +245,7 @@
       const ctx = new OfflineAudioContext(2, Math.ceil(fin * SR), SR);
       const master = ctx.createGain(), duck = ctx.createGain();
       master.connect(duck); duck.connect(ctx.destination);
-      const { m } = musica(ctx, master, { clave: plan.key || 'garuita', largo: fin, noche: (t) => escenaEn(t).lugar === 'noche', animo: animoEn });
+      const { m } = musica(ctx, master, { clave: plan.key || 'garuita', largo: fin, noche: (t) => escenaEn(t).lugar === 'noche', animo: animoEn, bpm: plan.bpm });
       bajarConVoz(duck.gain, tramosVoz.map(([a, b]) => [a + desde, b + desde]), { conVoz: 0.42 });
       // Entra suave al principio y se apaga suave al final.
       master.gain.setValueAtTime(0, 0); master.gain.linearRampToValueAtTime(1, 1.2);

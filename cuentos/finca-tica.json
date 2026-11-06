@@ -1,0 +1,305 @@
+{
+ "id": "finca-tica",
+ "tipo": "bebes",
+ "titulo": "Un día en la finca tica",
+ "tema": "Los cinco animalitos pasan un día tranquilo en una finca de Costa Rica.",
+ "partes": [
+  {
+   "id": "apertura",
+   "nombre": "Hola amiguitos",
+   "escenas": [
+    {
+     "seg": 8,
+     "lugar": "volcan",
+     "sol": "sale",
+     "camara": [
+      {
+       "z": 1.06
+      },
+      {
+       "z": 1
+      }
+     ],
+     "frases": [
+      "¡Hola, hola, amiguitos! ¡Hola!",
+      "¡Buenos días!"
+     ],
+     "sonidos": [
+      {
+       "id": "pajaros",
+       "en": 0.2,
+       "vol": 0.35
+      }
+     ]
+    },
+    {
+     "seg": 12,
+     "lugar": "finca",
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": -0.64,
+       "aparece": "f1",
+       "accion": "saludar"
+      },
+      {
+       "id": "mono",
+       "x": -0.32,
+       "aparece": "f2",
+       "accion": "saludar"
+      },
+      {
+       "id": "conejo",
+       "x": 0,
+       "aparece": "f3",
+       "accion": "saludar"
+      },
+      {
+       "id": "gallina",
+       "x": 0.32,
+       "aparece": "f4",
+       "accion": "saludar"
+      },
+      {
+       "id": "tigre",
+       "x": 0.64,
+       "aparece": "f5",
+       "accion": "saludar"
+      }
+     ],
+     "frases": [
+      "Tula.",
+      "Chito.",
+      "Chepe.",
+      "Clota.",
+      "Y Bruno.",
+      "¡Hola, amiguitos!"
+     ],
+     "ritmo": "junto"
+    },
+    {
+     "seg": 15,
+     "lugar": "finca",
+     "musica": "canto",
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": -0.64,
+       "accion": "bailar"
+      },
+      {
+       "id": "mono",
+       "x": -0.32,
+       "accion": "bailar"
+      },
+      {
+       "id": "conejo",
+       "x": 0,
+       "accion": "bailar"
+      },
+      {
+       "id": "gallina",
+       "x": 0.32,
+       "accion": "bailar"
+      },
+      {
+       "id": "tigre",
+       "x": 0.64,
+       "accion": "bailar"
+      }
+     ],
+     "notas": true,
+     "frases": [
+      "Cinco amiguitos, uno, dos, tres.",
+      "Cinco amiguitos, ¡hola otra vez!"
+     ]
+    },
+    {
+     "seg": 5,
+     "lugar": "finca",
+     "camara": [
+      {
+       "z": 1.2,
+       "y": 40
+      },
+      {
+       "z": 0.95,
+       "y": 0
+      }
+     ],
+     "frases": [
+      "¡Vamos a jugar! ¡Vamos!"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "clota",
+   "nombre": "Clota y el gallo pinto",
+   "tema": "comer",
+   "escenas": [
+    {
+     "seg": 30,
+     "lugar": "cocina",
+     "personajes": [
+      {
+       "id": "gallina",
+       "x": 0,
+       "accion": "quieto",
+       "ropa": "delantal",
+       "acciones": [
+        [
+         "f1",
+         "saludar"
+        ],
+        [
+         "f3",
+         "pancita"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Buenos días, Clota.",
+      "Clota dice: cocó, cocó.",
+      "¿Cómo dice Clota? Cocó, cocó.",
+      "Clota tiene hambre. Mucha hambre."
+     ],
+     "sonidos": [
+      {
+       "id": "gallina-suave",
+       "en": "f2+",
+       "vol": 0.5
+      },
+      {
+       "id": "gallina-suave",
+       "en": "f3+",
+       "vol": 0.5
+      }
+     ],
+     "camara": [
+      {
+       "z": 1.75,
+       "x": 0,
+       "y": 125
+      },
+      {
+       "z": 1.9,
+       "x": 0,
+       "y": 130
+      }
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "cocina",
+     "olla": true,
+     "camara": [
+      {
+       "z": 1.5,
+       "x": 90,
+       "y": 150
+      },
+      {
+       "z": 1.65,
+       "x": 100,
+       "y": 150
+      }
+     ],
+     "personajes": [
+      {
+       "id": "gallina",
+       "x": -0.06,
+       "accion": "revolver",
+       "ropa": "delantal",
+       "acciones": [
+        [
+         "f4",
+         "oler"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Arroz blanco.",
+      "Frijoles negros.",
+      "Clota los revuelve. Vuelta, vuelta, vuelta.",
+      "Otra vez: vuelta, vuelta, vuelta. Huele rico. Mmmm."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "cocina",
+     "mesa": "llena",
+     "camara": [
+      {
+       "z": 1.45,
+       "y": 120
+      },
+      {
+       "z": 1.6,
+       "y": 125
+      }
+     ],
+     "personajes": [
+      {
+       "id": "gallina",
+       "x": 0,
+       "accion": "comer",
+       "ropa": "delantal",
+       "sentada": true
+      }
+     ],
+     "frases": [
+      "¡Gallo pinto! Qué rico.",
+      "Clota come despacito. Ñam, ñam, ñam.",
+      "¿Cómo hacemos? Ñam, ñam.",
+      "Una tortilla también. Ñam."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "cocina",
+     "mesa": "vacia",
+     "camara": [
+      {
+       "z": 1.5,
+       "y": 115
+      },
+      {
+       "z": 1.68,
+       "y": 110
+      }
+     ],
+     "personajes": [
+      {
+       "id": "gallina",
+       "x": 0,
+       "accion": "limpiarse",
+       "ropa": "delantal",
+       "sentada": true,
+       "acciones": [
+        [
+         "f2",
+         "feliz"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Clota comió todo. ¡Muy bien, Clota!",
+      "Gracias, comidita. Gracias.",
+      "Cocó, cocó. Clota está contenta."
+     ],
+     "sonidos": [
+      {
+       "id": "gallina-suave",
+       "en": "f3+",
+       "vol": 0.45
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
