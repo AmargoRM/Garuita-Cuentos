@@ -48,6 +48,9 @@ def main():
     p.add_argument("--expresividad", type=float, default=0.6)
     p.add_argument("--ritmo", type=float, default=0.5)
     p.add_argument("--salida", default=None)
+    p.add_argument("--voces", default=None,
+                   help='JSON con una voz por personaje, ej. {"tortuga": "ruta/voz-tula.ogg"}. '
+                        'Cada "dice" de ese personaje sale como escena-NN-<id>.wav con su voz.')
     a = p.parse_args()
 
     nombre = re.sub(r"[^a-zA-Z0-9_-]", "", a.cuento)
@@ -59,20 +62,42 @@ def main():
 
     carpeta = a.salida or os.path.join(RAIZ, "salida", "narracion", nombre)
     os.makedirs(carpeta, exist_ok=True)
-    referencia = os.path.join(tempfile.mkdtemp(), "voz.wav")
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", a.voz, "-af", LIMPIAR_REFERENCIA, "-ac", "1", "-ar", "24000", "-t", "15", referencia], check=True)
+    temporal = tempfile.mkdtemp()
+
+    def limpiar(origen, nombre_ref):
+        ref = os.path.join(temporal, f"{nombre_ref}.wav")
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", origen, "-af", LIMPIAR_REFERENCIA, "-ac", "1", "-ar", "24000", "-t", "15", ref], check=True)
+        return ref
+
+    referencia = limpiar(a.voz, "narrador")
+    voces = {}
+    if a.voces:
+        with open(a.voces, encoding="utf-8") as f:
+            voces = {re.sub(r"[^a-z0-9_-]", "", k.lower()): v for k, v in json.load(f).items()}
+    # Diálogos: (archivo, texto, personaje) para cada "dice" de un personaje con voz propia.
+    for i, e in enumerate(cuento.get("escenas", []), 1):
+        for c in e.get("personajes", []) or []:
+            pid = re.sub(r"[^a-z0-9_-]", "", str(c.get("id", "")).lower())
+            if pid in voces and str(c.get("dice", "")).strip():
+                lineas.append((f"escena-{i:02d}-{pid}", str(c["dice"])[:60], pid))
 
     dispositivo = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Cargando Chatterbox en {dispositivo}...", flush=True)
     modelo = ChatterboxMultilingualTTS.from_pretrained(device=dispositivo)
-    modelo.prepare_conditionals(referencia, exaggeration=a.expresividad)
+    # Prepara cada voz una sola vez y la guarda para cambiar rápido entre narrador y personajes.
+    condiciones = {}
+    for pid, ruta in [("narrador", None)] + sorted(voces.items()):
+        modelo.prepare_conditionals(referencia if ruta is None else limpiar(ruta, pid), exaggeration=a.expresividad)
+        condiciones[pid] = modelo.conds
     pausa = np.zeros(int(modelo.sr * 0.35), dtype=np.float32)
 
-    for n, (archivo, texto) in enumerate(lineas, 1):
+    lineas = [l if len(l) == 3 else (*l, "narrador") for l in lineas]
+    for n, (archivo, texto, quien) in enumerate(lineas, 1):
         destino = os.path.join(carpeta, f"{archivo}.wav")
         if not texto.strip() or os.path.exists(destino):
             continue  # vacío o ya narrado (se puede cortar y retomar)
-        print(f"[{n}/{len(lineas)}] {archivo}: {texto}", flush=True)
+        print(f"[{n}/{len(lineas)}] {archivo} ({quien}): {texto}", flush=True)
+        modelo.conds = condiciones[quien]
         partes = []
         for i, t in enumerate(trozos(texto)):
             wav = modelo.generate(t, language_id="es", exaggeration=a.expresividad, cfg_weight=a.ritmo)

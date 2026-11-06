@@ -6,3 +6,4 @@ publico/fuentes/
 
 # Audios de narración: se generan en Colab con tu voz y no se suben a GitHub (el repo es público).
 voz/*/
+__pycache__/
