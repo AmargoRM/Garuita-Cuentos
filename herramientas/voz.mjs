@@ -58,13 +58,18 @@ resultado.dialogos = escenas.map((e, i) => {
   });
   return d;
 });
+// Frases del campo "dialogo": escena-NN-dKK.wav -> [segundos, ...] por escena. Y el final (fin.wav).
+resultado.lineas = escenas.map((e, i) => (Array.isArray(e.dialogo) ? e.dialogo : []).map((_, k) => importar(`escena-${String(i + 1).padStart(2, '0')}-d${String(k + 1).padStart(2, '0')}`)));
+resultado.fin = importar('fin');
+const frases = resultado.lineas.reduce((n, l) => n + l.filter((x) => x != null).length, 0);
 const conVoz = resultado.dialogos.reduce((n, d) => n + Object.keys(d).length, 0);
 const faltan = resultado.escenas.map((d, i) => (d == null && String(escenas[i].texto || '').trim() ? i + 1 : null)).filter(Boolean);
 fs.writeFileSync(path.join(destino, 'duraciones.json'), JSON.stringify(resultado, null, 2) + '\n');
 
 const total = (resultado.titulo || 0) + resultado.escenas.reduce((s, d) => s + (d || 0), 0)
-  + resultado.dialogos.reduce((s, d) => s + Object.values(d).reduce((a, b) => a + b, 0), 0);
-console.log(`Narración de "${cuento}": ${resultado.escenas.filter((d) => d != null).length} de ${escenas.length} escenas, ${conVoz} diálogos, ${total.toFixed(1)} s de voz.`);
+  + resultado.dialogos.reduce((s, d) => s + Object.values(d).reduce((a, b) => a + b, 0), 0)
+  + resultado.lineas.reduce((s, l) => s + l.reduce((a, b) => a + (b || 0), 0), 0) + (resultado.fin || 0);
+console.log(`Narración de "${cuento}": ${resultado.escenas.filter((d) => d != null).length} de ${escenas.length} escenas, ${conVoz + frases} diálogos, ${total.toFixed(1)} s de voz.`);
 console.log(`  -> ${path.relative(raiz, destino)}/duraciones.json`);
 if (resultado.titulo == null) console.log('  Aviso: falta titulo.wav (el título queda sin voz).');
 if (faltan.length) console.log(`  Aviso: faltan audios de las escenas ${faltan.join(', ')} (quedan sin voz).`);

@@ -14,7 +14,7 @@ export function crearServidor() {
   return http.createServer((req, res) => {
     let ruta = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     if (ruta === '/') ruta = '/index.html';
-    const carpeta = ['/cuentos/', '/voz/'].find((c) => ruta.startsWith(c));
+    const carpeta = ['/cuentos/', '/voz/', '/sonidos/'].find((c) => ruta.startsWith(c));
     const base = carpeta ? raiz : path.join(raiz, 'publico');
     const permitido = carpeta ? path.join(raiz, carpeta) : base; // no deja salir de esa carpeta con "../"
     const archivo = path.normalize(path.join(base, ruta));

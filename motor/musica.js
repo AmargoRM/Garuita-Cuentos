@@ -31,7 +31,7 @@
     const k = `${tipo}:${midi}:${ctx.sampleRate}`;
     if (cache.has(k)) return cache.get(k);
     const sr = ctx.sampleRate, f = hz(midi);
-    const largo = { uke: 1.6, marimba: 1.0, bajo: 0.9, caja: 2.2, maraca: 0.12, palo: 0.15 }[tipo];
+    const largo = { uke: 1.6, marimba: 1.0, bajo: 0.9, caja: 2.2, maraca: 0.12, palo: 0.15, tambor: 0.4 }[tipo];
     const n = Math.floor(sr * largo), buf = ctx.createBuffer(1, n, sr), d = buf.getChannelData(0);
     const r = azar(midi * 7919 + tipo.length);
     if (tipo === 'uke') {
@@ -53,6 +53,9 @@
     } else if (tipo === 'maraca') {
       let lp = 0;
       for (let i = 0; i < n; i++) { const t = i / sr, x = r() * 2 - 1; lp = lp * 0.6 + x * 0.4; d[i] = (x - lp) * Math.exp(-t * 45) * Math.min(1, t * 900); }
+    } else if (tipo === 'tambor') {
+      // Tambor grave (bombo de feria) que baja de tono al sonar: le da empuje a la acción.
+      for (let i = 0; i < n; i++) { const t = i / sr, fr = 55 + 90 * Math.exp(-t * 28); d[i] = Math.sin(2 * Math.PI * fr * t) * Math.exp(-t * 9) * Math.min(1, t * 2000); }
     } else if (tipo === 'palo') {
       for (let i = 0; i < n; i++) { const t = i / sr; d[i] = Math.sin(2 * Math.PI * 820 * t) * Math.exp(-t * 55) + 0.4 * Math.sin(2 * Math.PI * 1230 * t) * Math.exp(-t * 70); }
     }
@@ -119,8 +122,10 @@
     return { tonica, pA, pB, fraseA, fraseB, bpm: 100 + Math.floor(r() * 10) };
   }
 
-  // Dibuja toda la música del video. `noche(t)` dice si en el segundo t es de noche.
-  function musica(ctx, destino, { clave, largo, noche }) {
+  // Dibuja toda la música del video. `noche(t)` dice si en el segundo t es de noche y
+  // `animo(t)` cómo va la música en ese momento: tranquila, accion, fiesta, triste o silencio
+  // (null = la de siempre).
+  function musica(ctx, destino, { clave, largo, noche, animo = () => null }) {
     const m = componer(clave);
     const pulso = 60 / m.bpm, octavo = pulso / 2, compas = pulso * 4;
     const wet = sala(ctx), gw = ctx.createGain(); gw.gain.value = 0.22; wet.connect(gw); gw.connect(destino);
@@ -134,28 +139,50 @@
       const prog = forma === 'B' ? m.pB : m.pA, frase = forma === 'B' ? m.fraseB : m.fraseA;
       const ac = acorde(m.tonica, prog[enBloque]);
       const raiz = grado(m.tonica, prog[enBloque]) - 24;
+      const an = animo(t0 + 0.1);
+      if (an === 'silencio') continue;
+      if (an === 'triste') {
+        // Triste: cajita lenta, suave, y un bajo largo; sin ritmo.
+        [0, 2].forEach((k, i) => tocar(ctx, bus, 'caja', ac[k] + 12, t0 + i * 2 * pulso, 0.08, i ? 0.3 : -0.3));
+        tocar(ctx, bus, 'bajo', raiz, t0, 0.14);
+        continue;
+      }
       if (noche(t0 + 0.1)) {
         // Noche: cajita de música en arpegio lento y bajo largo.
         [0, 1, 2, 1].forEach((k, i) => tocar(ctx, bus, 'caja', ac[k] + 12, t0 + i * pulso, 0.10, i % 2 ? 0.3 : -0.3));
         tocar(ctx, bus, 'bajo', raiz, t0, 0.18);
         continue;
       }
-      // Ukelele rasgueado.
-      RASGUEO.forEach(([p, dir, fuerza]) => {
+      const calma = an === 'tranquila', accion = an === 'accion' || an === 'fiesta';
+      const fu = calma ? 0.7 : accion ? 1.15 : 1;
+      // Ukelele rasgueado (en la calma, solo los golpes fuertes).
+      RASGUEO.forEach(([p, dir, fuerza], j) => {
+        if (calma && j % 2) return;
         const cuerdas = [ac[0], ac[1], ac[2], ac[0] + 12];
-        (dir > 0 ? cuerdas : cuerdas.slice().reverse()).forEach((n, i) => tocar(ctx, bus, 'uke', n, t0 + p * octavo + i * 0.012, 0.16 * fuerza, -0.3));
+        (dir > 0 ? cuerdas : cuerdas.slice().reverse()).forEach((n, i) => tocar(ctx, bus, 'uke', n, t0 + p * octavo + i * 0.012, 0.16 * fuerza * fu, -0.3));
       });
-      // Bajo: raíz y quinta.
-      tocar(ctx, bus, 'bajo', raiz, t0, 0.32);
-      tocar(ctx, bus, 'bajo', raiz + 7, t0 + 2 * pulso, 0.26);
-      // Maraca en octavos y palito en los tiempos 2 y 4.
-      for (let k = 0; k < 8; k++) tocar(ctx, bus, 'maraca', 0, t0 + k * octavo, k % 2 ? 0.05 : 0.09, 0.4);
-      tocar(ctx, bus, 'palo', 0, t0 + pulso, 0.06, -0.15); tocar(ctx, bus, 'palo', 0, t0 + 3 * pulso, 0.06, -0.15);
+      // Bajo: raíz y quinta (en la acción, saltando en cada tiempo).
+      if (accion) [0, 7, 12, 7].forEach((iv, k) => tocar(ctx, bus, 'bajo', raiz + iv, t0 + k * pulso, 0.3));
+      else { tocar(ctx, bus, 'bajo', raiz, t0, 0.32 * fu); if (!calma) tocar(ctx, bus, 'bajo', raiz + 7, t0 + 2 * pulso, 0.26); }
+      // Maraca y palito. Acción: maraca en dieciseisavos, palito en cada tiempo y tambor.
+      if (accion) {
+        for (let k = 0; k < 16; k++) tocar(ctx, bus, 'maraca', 0, t0 + (k * octavo) / 2, k % 2 ? 0.045 : 0.085, 0.4);
+        for (let k = 0; k < 4; k++) tocar(ctx, bus, 'palo', 0, t0 + k * pulso, k % 2 ? 0.08 : 0.05, -0.15);
+        [0, 1.5, 2, 3.5].forEach((b) => tocar(ctx, bus, 'tambor', 0, t0 + b * pulso, 0.42));
+      } else if (!calma) {
+        for (let k = 0; k < 8; k++) tocar(ctx, bus, 'maraca', 0, t0 + k * octavo, k % 2 ? 0.05 : 0.09, 0.4);
+        tocar(ctx, bus, 'palo', 0, t0 + pulso, 0.06, -0.15); tocar(ctx, bus, 'palo', 0, t0 + 3 * pulso, 0.06, -0.15);
+      } else tocar(ctx, bus, 'palo', 0, t0 + 2 * pulso, 0.04, -0.15);
+      // Fiesta: unas chispitas de cajita encima.
+      if (an === 'fiesta') [0, 1, 2].forEach((k) => tocar(ctx, bus, 'caja', ac[k] + 24, t0 + (k * 2 + 1) * octavo, 0.05, 0.35));
       // Melodía (marimba) o, en el bloque liviano, solo unas gotitas de cajita.
-      if (forma === 'L') {
+      if (forma === 'L' && !accion) {
         tocar(ctx, bus, 'caja', ac[2] + 12, t0, 0.06, 0.25); tocar(ctx, bus, 'caja', ac[1] + 12, t0 + 2.5 * pulso, 0.05, 0.25);
       } else {
-        frase[enBloque].forEach(([p, g]) => tocar(ctx, bus, 'marimba', grado(m.tonica, g), t0 + p * octavo, 0.22, 0.2));
+        frase[enBloque].forEach(([p, g]) => {
+          tocar(ctx, bus, 'marimba', grado(m.tonica, g), t0 + p * octavo, 0.22 * (calma ? 0.75 : 1), 0.2);
+          if (accion) tocar(ctx, bus, 'marimba', grado(m.tonica, g) + 12, t0 + p * octavo, 0.1, -0.2); // la melodía doblada arriba
+        });
       }
     }
     return { bus, m };
@@ -196,6 +223,10 @@
     const res = { musica: null, efectos: null, info: {} };
     const escenaEn = (t) => { let i = 0; while (i < plan.scenes.length - 1 && t >= plan.scenes[i + 1].start) i++; return plan.scenes[i]; };
     const tramosVoz = plan.scenes.filter((s) => s.narr).map((s) => [s.start + s.narr[0] - desde, s.start + s.narr[1] - desde]);
+    // Los diálogos de los personajes también bajan la música.
+    plan.scenes.forEach((s) => (s.lines || []).forEach((l) => tramosVoz.push([s.start + l.t0 - desde, s.start + l.t1 - desde])));
+    // Ánimo de la música en el segundo t (lo pone cada escena del cuento).
+    const animoEn = (t) => { const sc = escenaEn(t), u = t - sc.start; let a = null; (sc.moods || []).forEach(([t0, x]) => { if (u >= t0) a = x; }); return a; };
 
     if (conMusica) {
       // La música se compone desde el segundo 0 del cuento: si se graba un pedazo, se dibuja entera y se recorta.
@@ -203,8 +234,8 @@
       const ctx = new OfflineAudioContext(2, Math.ceil(fin * SR), SR);
       const master = ctx.createGain(), duck = ctx.createGain();
       master.connect(duck); duck.connect(ctx.destination);
-      const { m } = musica(ctx, master, { clave: plan.key || 'garuita', largo: fin, noche: (t) => escenaEn(t).lugar === 'noche' });
-      bajarConVoz(duck.gain, tramosVoz.map(([a, b]) => [a + desde, b + desde]));
+      const { m } = musica(ctx, master, { clave: plan.key || 'garuita', largo: fin, noche: (t) => escenaEn(t).lugar === 'noche', animo: animoEn });
+      bajarConVoz(duck.gain, tramosVoz.map(([a, b]) => [a + desde, b + desde]), { conVoz: 0.42 });
       // Entra suave al principio y se apaga suave al final.
       master.gain.setValueAtTime(0, 0); master.gain.linearRampToValueAtTime(1, 1.2);
       master.gain.setValueAtTime(1, Math.max(1.3, fin - 2.5)); master.gain.linearRampToValueAtTime(0, fin);

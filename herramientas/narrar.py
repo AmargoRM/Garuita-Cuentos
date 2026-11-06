@@ -56,6 +56,7 @@ def main():
     p.add_argument("--expresividad", type=float, default=0.6)
     p.add_argument("--ritmo", type=float, default=0.5)
     p.add_argument("--salida", default=None)
+    p.add_argument("--solo", default=None, help="solo estos personajes, separados por coma (ej. tortuga,gallina,narrador)")
     p.add_argument("--narrador-ajustes", default=None, help='JSON, ej. {"tono": 1, "brillo": true}')
     p.add_argument("--voces", default=None,
                    help='JSON con una voz por personaje, ej. {"tortuga": "ruta/voz-tula.ogg"} o '
@@ -101,6 +102,14 @@ def main():
             pid = re.sub(r"[^a-z0-9_-]", "", str(c.get("id", "")).lower())
             if pid in voces and str(c.get("dice", "")).strip():
                 lineas.append((f"escena-{i:02d}-{pid}", str(c["dice"])[:60], pid))
+        # Campo "dialogo": cada frase sale como escena-NN-dKK.wav con la voz de quien la dice.
+        for k, l in enumerate(e.get("dialogo", []) or [], 1):
+            pid = re.sub(r"[^a-z0-9_-]", "", str(l.get("quien", l.get("id", ""))).lower())
+            if pid in voces and str(l.get("dice", "")).strip():
+                lineas.append((f"escena-{i:02d}-d{k:02d}", str(l["dice"])[:220], pid))
+    # Frase final del narrador (campo "fin_texto").
+    if str(cuento.get("fin_texto", "")).strip():
+        lineas.append(("fin", str(cuento["fin_texto"])[:90], "narrador"))
 
     dispositivo = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Cargando Chatterbox en {dispositivo}...", flush=True)
@@ -113,6 +122,9 @@ def main():
     pausa = np.zeros(int(modelo.sr * 0.35), dtype=np.float32)
 
     lineas = [l if len(l) == 3 else (*l, "narrador") for l in lineas]
+    if a.solo:
+        quienes = set(a.solo.split(","))
+        lineas = [l for l in lineas if l[2] in quienes]
     for n, (archivo, texto, quien) in enumerate(lineas, 1):
         destino = os.path.join(carpeta, f"{archivo}.wav")
         if not texto.strip() or os.path.exists(destino):

@@ -1,0 +1,134 @@
+{
+  "id": "la-piedra-short",
+  "titulo": "La piedra",
+  "corto": true,
+  "escenas": [
+    {
+      "lugar": "bosque",
+      "palabra": "¡GOZA!",
+      "palabra_linea": 2,
+      "musica": "accion",
+      "palo": "mango",
+      "mangos": 5,
+      "sonidos": [{ "id": "congos", "en": "inicio", "vol": 0.6 }],
+      "personajes": [
+        { "id": "mono", "accion": "apedrear", "veces": 2, "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "mono", "dice": "¡Mangos para mí!" },
+        { "quien": "gallina", "dice": "Goza…" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡NO GOZA!",
+      "palabra_linea": 2,
+      "musica": "accion",
+      "palo": "mango",
+      "mangos": 3,
+      "rama": true,
+      "golpe": "tortuga",
+      "personajes": [
+        { "id": "mono", "accion": "apedrear", "veces": 1, "entrada": "ya" },
+        { "id": "tortuga", "accion": "quieto", "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "tortuga", "dice": "¡Ay, mi caparazón!" },
+        { "quien": "gallina", "dice": "…¡y no goza!" }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "palabra": "¡GOZA!",
+      "palabra_linea": 2,
+      "musica": "accion",
+      "huerto": { "zanahorias": 6, "comer": true },
+      "personajes": [
+        { "id": "conejo", "accion": "comer", "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "conejo", "dice": "¡Todas las zanahorias hoy!" },
+        { "quien": "gallina", "dice": "Goza…" }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "palabra": "¡NO GOZA!",
+      "palabra_linea": 2,
+      "musica": "triste",
+      "huerto": { "zanahorias": 0 },
+      "sonidos": [{ "id": "gallo", "en": "inicio", "vol": 0.7 }],
+      "personajes": [
+        { "id": "conejo", "accion": "hablar", "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "conejo", "dice": "¿Y mañana? ¡Ya no hay!" },
+        { "quien": "gallina", "dice": "…¡y no goza!" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡GOZA!",
+      "palabra_linea": 2,
+      "musica": "accion",
+      "palo": "grande",
+      "zopilotes": 3,
+      "pajaritos": 4,
+      "vuelan": true,
+      "sonidos": [
+        { "id": "leon", "en": "rugido", "vol": 1.2 },
+        { "id": "aleteo", "en": "vuelan", "vol": 0.9 }
+      ],
+      "personajes": [
+        { "id": "tigre", "accion": "rugir", "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "tigre", "dice": "¡Fuera, zopilotes!" },
+        { "quien": "gallina", "dice": "Goza…" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡NO GOZA!",
+      "palabra_linea": 2,
+      "musica": "silencio",
+      "palo": "grande",
+      "personajes": [
+        { "id": "tigre", "accion": "hablar", "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "tigre", "dice": "¿Y los pajaritos?" },
+        { "quien": "gallina", "dice": "…¡y no goza!" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡PENSÁ ANTES!",
+      "palabra_linea": 1,
+      "musica": "tranquila",
+      "personajes": [{ "id": "tortuga", "accion": "hablar", "entrada": "ya" }],
+      "dialogo": [{ "quien": "tortuga", "dice": "Todo tiene un goza y un no goza. ¡Pensá antes!" }]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¿Y VOS?",
+      "palabra_linea": 2,
+      "musica": "fiesta",
+      "sonidos": [{ "id": "gallina", "en": "salida", "vol": 0.8 }],
+      "personajes": [
+        { "id": "gallina", "accion": "correr", "entrada": "ya", "salida": "derecha" },
+        { "id": "conejo", "accion": "saludar", "entrada": "aparece" }
+      ],
+      "dialogo": [
+        { "quien": "gallina", "dice": "¡Esto lo tiene que saber todo el monte!" },
+        { "quien": "conejo", "dice": "¿Y vos?" }
+      ]
+    }
+  ]
+}

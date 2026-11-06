@@ -1,0 +1,222 @@
+{
+  "id": "la-piedra",
+  "titulo": "La piedra",
+  "fin_texto": "¡Y colorín colorado, este cuento se ha acabado!",
+  "escenas": [
+    {
+      "lugar": "bosque",
+      "texto": "Una mañana de sol, en el monte, todos andaban muy ocupados.",
+      "palabra": "EL MONTE",
+      "musica": "tranquila",
+      "sonidos": [{ "id": "pajaros", "en": "inicio", "vol": 0.7 }],
+      "personajes": [
+        { "id": "tortuga", "accion": "saludar", "entrada": "ya" },
+        { "id": "conejo", "accion": "saltar", "entrada": "izquierda" },
+        { "id": "gallina", "accion": "anotar", "entrada": "aparece" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡MANGOS!",
+      "musica": "tranquila",
+      "palo": "mango",
+      "mangos": 6,
+      "sonidos": [{ "id": "congos", "en": "inicio", "vol": 0.8 }],
+      "personajes": [{ "id": "mono", "accion": "hablar", "entrada": "izquierda" }],
+      "dialogo": [
+        { "quien": "mono", "dice": "¡Mmm… mangos! ¡Bien amarillitos! Pero están tan altos…" },
+        { "quien": "mono", "dice": "¡Ja, ja! ¡No importa! ¡Yo tengo puntería!" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡GOZA!",
+      "palabra_linea": 2,
+      "musica": "accion",
+      "palo": "mango",
+      "mangos": 6,
+      "sonidos": [{ "id": "gallina", "en": "linea2", "vol": 0.6 }],
+      "personajes": [
+        { "id": "mono", "accion": "apedrear", "veces": 3, "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "aparece" }
+      ],
+      "dialogo": [
+        { "quien": "mono", "dice": "¡Uno! ¡Dos! ¡Tres mangos! ¡Ñam, ñam!" },
+        { "quien": "gallina", "dice": "¡Co-co! A ver… Mono Chito tiene mangos. Goza…" },
+        { "quien": "mono", "dice": "¡Goza, goza! ¡Ja, ja!" },
+        { "quien": "mono", "dice": "¡Ahora una piedra GRANDOTA para el más grande!" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡NO GOZA!",
+      "palabra_linea": 5,
+      "musica": "accion",
+      "palo": "mango",
+      "mangos": 3,
+      "rama": true,
+      "golpe": "tortuga",
+      "personajes": [
+        { "id": "mono", "accion": "apedrear", "veces": 1, "entrada": "ya" },
+        { "id": "tortuga", "accion": "quieto", "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "tortuga", "dice": "¡Ay! ¡Mi caparazón!" },
+        { "quien": "mono", "dice": "¡Uy! ¡Tula! ¿Estás bien? ¡No te vi!" },
+        { "quien": "tortuga", "dice": "Estoy bien, Chito. Pero mirá el palo… quebraste las ramas. El otro año va a dar menos mangos." },
+        { "quien": "mono", "dice": "Ay… no pensé en eso." },
+        { "quien": "gallina", "dice": "…¡y no goza! ¡Co-co!" }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "palabra": "¡GOZA!",
+      "palabra_linea": 4,
+      "musica": "accion",
+      "huerto": { "zanahorias": 8, "comer": true },
+      "personajes": [
+        { "id": "conejo", "accion": "comer", "entrada": "izquierda" },
+        { "id": "gallina", "accion": "anotar", "entrada": "aparece" }
+      ],
+      "dialogo": [
+        { "quien": "conejo", "dice": "¡Zanahorias! ¡Una! ¡Dos! ¡Tres! ¡Todas para mí!" },
+        { "quien": "gallina", "dice": "¡Co-co! Chepe, ¿no va a guardar unas para mañana?" },
+        { "quien": "conejo", "dice": "¿Mañana? ¡Mañana es mañana! ¡Hoy es hoy!" },
+        { "quien": "gallina", "dice": "Apunto: Conejo Chepe, panza llena. Goza…" }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "texto": "Al día siguiente…",
+      "palabra": "¡NO GOZA!",
+      "palabra_linea": 3,
+      "musica": "triste",
+      "huerto": { "zanahorias": 0 },
+      "sonidos": [{ "id": "gallo", "en": "inicio", "vol": 0.8 }],
+      "personajes": [
+        { "id": "conejo", "accion": "hablar", "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "aparece" }
+      ],
+      "dialogo": [
+        { "quien": "conejo", "dice": "¿Y mis zanahorias? ¿Dónde están? ¡Tengo hambre!" },
+        { "quien": "conejo", "dice": "Ay… ya me acordé. Me las comí todas ayer." },
+        { "quien": "gallina", "dice": "…¡y no goza! ¡Co-co!" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "ZOPILOTES",
+      "musica": "tranquila",
+      "palo": "grande",
+      "zopilotes": 3,
+      "pajaritos": 5,
+      "sonidos": [{ "id": "pajaros", "en": "inicio", "vol": 0.8 }],
+      "personajes": [{ "id": "tigre", "accion": "hablar", "entrada": "izquierda" }],
+      "dialogo": [
+        { "quien": "tigre", "dice": "¡Puaj! ¡Zopilotes en mi palo! ¡Qué feos!" },
+        { "quien": "tigre", "dice": "¡Ahora van a ver quién manda aquí!" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡GOZA!",
+      "palabra_linea": 2,
+      "musica": "accion",
+      "palo": "grande",
+      "zopilotes": 3,
+      "pajaritos": 5,
+      "vuelan": true,
+      "sonidos": [
+        { "id": "pajaros", "en": "inicio", "vol": 0.5 },
+        { "id": "leon", "en": "rugido", "vol": 1.2 },
+        { "id": "aleteo", "en": "vuelan", "vol": 0.9 }
+      ],
+      "personajes": [
+        { "id": "tigre", "accion": "rugir", "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "aparece" }
+      ],
+      "dialogo": [
+        { "quien": "tigre", "dice": "¡Ja! ¡Se fueron! ¡Nadie se mete con Bruno!" },
+        { "quien": "gallina", "dice": "Apunto: Tigre Bruno espantó a los zopilotes. Goza…" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡NO GOZA!",
+      "palabra_linea": 4,
+      "musica": "silencio",
+      "palo": "grande",
+      "personajes": [
+        { "id": "tigre", "accion": "hablar", "entrada": "ya" },
+        { "id": "tortuga", "accion": "hablar", "entrada": "derecha" },
+        { "id": "gallina", "accion": "anotar", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "tigre", "dice": "¿Eh? ¿Y los pajaritos que cantaban?" },
+        { "quien": "tigre", "dice": "Tan bonito que cantaban… y ahora todo calladito." },
+        { "quien": "tortuga", "dice": "Bruno, con el rugido también se fueron ellos. Y los zopilotes limpian el monte, ¿sabía?" },
+        { "quien": "gallina", "dice": "…¡y no goza! ¡Co-co!" }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "palabra": "LA LIBRETITA",
+      "musica": "tranquila",
+      "sonidos": [{ "id": "gallina", "en": "inicio", "vol": 0.6 }],
+      "personajes": [
+        { "id": "mono", "accion": "quieto", "entrada": "ya" },
+        { "id": "gallina", "accion": "anotar", "entrada": "ya" },
+        { "id": "conejo", "accion": "quieto", "entrada": "ya" },
+        { "id": "tigre", "accion": "quieto", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "gallina", "dice": "¡Co-co! ¡Escuchen todos! Chito: goza mangos, no goza ramas. Chepe: goza hoy, no goza mañana. Bruno: goza silencio, no goza cantos." },
+        { "quien": "mono", "dice": "¡Uy! ¡Qué libretita tan chismosa!" }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡PENSÁ ANTES!",
+      "palabra_linea": 1,
+      "musica": "tranquila",
+      "palo": "grande",
+      "pajaritos": 5,
+      "vuelven": true,
+      "sonidos": [{ "id": "pajaros", "en": "vuelven", "vol": 0.9 }],
+      "personajes": [
+        { "id": "mono", "accion": "hablar", "entrada": "ya" },
+        { "id": "tortuga", "accion": "hablar", "entrada": "ya" },
+        { "id": "conejo", "accion": "hablar", "entrada": "ya" },
+        { "id": "tigre", "accion": "hablar", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "tortuga", "dice": "Todo lo que hacemos tiene un goza… y un no goza. Antes de hacer algo, pensemos: ¿quién no va a gozar después?" },
+        { "quien": "mono", "dice": "¡Ya sé! ¡Espero a que los mangos caigan solitos!" },
+        { "quien": "conejo", "dice": "¡Y yo siembro más, y me como una zanahoria por día!" },
+        { "quien": "tigre", "dice": "Pajaritos… vuelvan… porfa." }
+      ]
+    },
+    {
+      "lugar": "bosque",
+      "palabra": "¡CO-CO-CO!",
+      "musica": "accion",
+      "sonidos": [{ "id": "gallina", "en": "salida", "vol": 0.9 }],
+      "personajes": [
+        { "id": "gallina", "accion": "correr", "entrada": "ya", "salida": "derecha" },
+        { "id": "tortuga", "accion": "hablar", "entrada": "ya" }
+      ],
+      "dialogo": [
+        { "quien": "gallina", "dice": "¡Co-co-co! ¡Esto lo tiene que saber todo el monte!" },
+        { "quien": "tortuga", "dice": "Ay, Clota… ya va a regar el cuento por todo el monte." }
+      ]
+    },
+    {
+      "lugar": "pueblito",
+      "palabra": "¿Y VOS?",
+      "musica": "tranquila",
+      "personajes": [{ "id": "conejo", "accion": "saludar", "entrada": "aparece" }],
+      "dialogo": [{ "quien": "conejo", "dice": "¿Y vos? ¿Qué hiciste hoy que goza… y no goza?" }]
+    }
+  ]
+}

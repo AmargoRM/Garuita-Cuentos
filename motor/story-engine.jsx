@@ -18,7 +18,11 @@ const FMT = {
 };
 
 const IDS = ['conejo', 'cucaracha', 'gallina', 'zorra', 'coyote', 'tigre', 'tortuga', 'mono', 'danta', 'perezoso', 'tucan', 'vaca', 'perro', 'gato', 'mariposa'];
-const ACTIONS = ['quieto', 'saltar', 'caminar', 'tocar', 'saludar', 'hablar', 'bailar', 'comer', 'dormir', 'reir', 'correr', 'abrazar', 'regalo', 'asustarse', 'recoger', 'tirar'];
+const ACTIONS = ['quieto', 'saltar', 'caminar', 'tocar', 'saludar', 'hablar', 'bailar', 'comer', 'dormir', 'reir', 'correr', 'abrazar', 'regalo', 'asustarse', 'recoger', 'tirar', 'apedrear', 'rugir', 'anotar'];
+// Ánimo de la música de fondo en cada escena (motor/musica.js).
+const MOODS = ['tranquila', 'accion', 'fiesta', 'triste', 'silencio'];
+// Nombre completo de cada personaje para el subtítulo de los diálogos, y su color.
+const NAMES = { conejo: ['Conejo Chepe', '#2F7DEB'], mono: ['Mono Chito', '#8B5A3C'], tortuga: ['Tortuga Tula', '#2C8139'], gallina: ['Gallina Clota', '#E5322F'], tigre: ['Tigre Bruno', '#E07800'], danta: ['Danta Lola', '#5C5672'], tucan: ['Tucán Pico', '#2B2B35'], mariposa: ['Mariposa Luz', '#7B5CFF'], perezoso: ['Perezoso Mencho', '#8B6440'], zorra: ['Zorra Fina', '#D9661A'], coyote: ['Coyote Lalo', '#8A7356'], vaca: ['Vaca Chela', '#7B5CFF'], perro: ['Canelo', '#C88E3A'], gato: ['Misifú', '#606A82'], cucaracha: ['Cuca', '#C4612C'] };
 const TRASH = ['botella', 'lata', 'bolsa', 'papel'];
 const ENTRIES = ['ya', 'izquierda', 'derecha', 'aparece', 'puerta'];
 const PLACES = { pueblito: 'Pueblito', bosque: 'Bosque', rio: 'Río', playa: 'Playa', mercado: 'Mercado', casa: 'Casa', noche: 'Noche' };
@@ -27,6 +31,9 @@ const ALIAS = { zorro: 'zorra', tapir: 'danta', perezosa: 'perezoso', gallo: 'ga
 function normId(s) { const n = norm(s); return IDS.find((id) => n.includes(id)) || ALIAS[Object.keys(ALIAS).find((k) => n.includes(k))] || null; }
 function normAct(s) {
   const n = norm(s);
+  if (n.startsWith('apedre') || n.startsWith('piedra')) return 'apedrear';
+  if (n.startsWith('rug')) return 'rugir';
+  if (n.startsWith('anot') || n.startsWith('escrib') || n.startsWith('apunt')) return 'anotar';
   if (n.startsWith('regal') || n === 'dar' || n.startsWith('dar ')) return 'regalo';
   if (n.startsWith('asust') || n.includes('sorpr')) return 'asustarse';
   if (n.startsWith('abraz')) return 'abrazar';
@@ -38,7 +45,7 @@ function normAct(s) {
 }
 function sanitizeStory(st) {
   st = st || {};
-  const out = { id: st.id || 'x', titulo: String(st.titulo || 'Conejo Chepe').slice(0, 40), escenas: [] };
+  const out = { id: st.id || 'x', titulo: String(st.titulo || 'Conejo Chepe').slice(0, 40), escenas: [], finTexto: String(st.fin_texto || '').slice(0, 90), corto: !!st.corto };
   (Array.isArray(st.escenas) ? st.escenas : []).forEach((e) => {
     if (!e) return;
     const lugar = PLACES[norm(e.lugar)] ? norm(e.lugar) : 'pueblito';
@@ -47,7 +54,17 @@ function sanitizeStory(st) {
       id: normId(c && c.id), accion: normAct(c && c.accion), entrada: ENTRIES.includes(norm(c && c.entrada)) ? norm(c.entrada) : 'ya',
       dice: String((c && c.dice) || '').slice(0, 60), hacia: normId(c && c.hacia),
       objeto: TRASH.includes(norm(c && c.objeto)) ? norm(c.objeto) : null,
-    })).filter((c) => c.id && !seen.has(c.id) && seen.add(c.id)).slice(0, 3);
+      salida: ['izquierda', 'derecha'].includes(norm(c && c.salida)) ? norm(c.salida) : null, // se va corriendo al terminar de hablar
+      veces: clamp(Math.round(Number(c && c.veces) || 3), 1, 5),                          // piedras que tira (apedrear)
+    })).filter((c) => c.id && !seen.has(c.id) && seen.add(c.id)).slice(0, 5);
+    // Diálogo: frases en orden, cada una dicha por un personaje que está en la escena.
+    const dialogo = (Array.isArray(e.dialogo) ? e.dialogo : []).map((l) => ({ id: normId(l && (l.quien || l.id)), dice: String((l && l.dice) || '').trim().slice(0, 220) }))
+      .filter((l) => l.id && l.dice && cast.some((c) => c.id === l.id)).slice(0, 10);
+    const sonidos = (Array.isArray(e.sonidos) ? e.sonidos : []).map((x) => ({
+      id: String((x && x.id) || '').toLowerCase().replace(/[^a-z0-9_-]/g, ''), en: typeof (x && x.en) === 'number' ? x.en : norm(x && x.en) || 'inicio',
+      vol: clamp(Number(x && x.vol) || 1, 0.05, 3),
+    })).filter((x) => x.id).slice(0, 8);
+    const huerto = e.huerto == null || e.huerto === false ? null : typeof e.huerto === 'object' ? { n: clamp(Math.round(Number(e.huerto.zanahorias) || 0), 0, 10), comer: !!e.huerto.comer } : { n: clamp(Math.round(Number(e.huerto) || 0), 0, 10), comer: false };
     let door = false;
     cast.forEach((c) => { if (c.entrada === 'puerta') { if (door) c.entrada = 'aparece'; door = true; } });
     out.escenas.push({
@@ -57,6 +74,15 @@ function sanitizeStory(st) {
       sucia: norm(e.agua) === 'sucia',                          // agua del río color lodo
       limpiar: !!e.limpiar,                                     // la basura va desapareciendo durante la escena
       botes: !!e.botes,                                         // tres basureros de reciclaje
+      // Opcionales de la saga "goza y no goza":
+      dialogo, sonidos, huerto,
+      musica: MOODS.includes(norm(e.musica)) ? norm(e.musica) : null,
+      palo: ['mango', 'grande'].includes(norm(e.palo)) ? norm(e.palo) : null,        // palo de mango o palo grande con pájaros
+      mangos: clamp(Math.round(e.mangos == null ? 6 : Number(e.mangos) || 0), 0, 8),
+      rama: !!e.rama, golpe: normId(e.golpe),                                        // la última piedra quiebra una rama / le cae a alguien
+      zopilotes: clamp(Math.round(Number(e.zopilotes) || 0), 0, 4), pajaritos: clamp(Math.round(Number(e.pajaritos) || 0), 0, 6),
+      vuelan: !!e.vuelan, vuelven: !!e.vuelven,
+      palabraLinea: clamp(Math.round(Number(e.palabra_linea) || 0), 0, 10),
     });
   });
   return out;
@@ -129,6 +155,11 @@ const SFX = {
       case 'boing': this.tone({ f: 200, f2: 700, dur: 0.25, gain: 0.12, vib: 30 }); break;
       case 'chime': this.tone({ f: 1047, dur: 0.6, gain: 0.06 }); this.tone({ f: 1568, dur: 0.7, gain: 0.04, delay: 0.08 }); break;
       case 'swish': this.noise({ dur: 0.35, gain: 0.05, lp: 2500 }); break;
+      case 'toc': this.noise({ dur: 0.08, gain: 0.14, lp: 1800 }); this.tone({ f: 520, f2: 380, dur: 0.1, type: 'triangle', gain: 0.16 }); break;
+      case 'crac': this.noise({ dur: 0.45, gain: 0.2, lp: 3200 }); this.tone({ f: 180, f2: 70, dur: 0.4, type: 'sawtooth', gain: 0.08, lp: 900 }); break;
+      case 'bonk': this.tone({ f: 700, f2: 260, dur: 0.3, type: 'triangle', gain: 0.2 }); this.noise({ dur: 0.06, gain: 0.12, lp: 2200 }); break;
+      case 'mango': this.tone({ f: 160, f2: 90, dur: 0.16, gain: 0.14 }); break;
+      case 'garabato': [0, 0.13, 0.27].forEach((d) => this.noise({ dur: 0.09, gain: 0.05, lp: 5000, delay: d })); break;
       case 'voz': this.voice(a.id, a.n); break;
     }
   },
@@ -424,10 +455,16 @@ function Food({ kind, x, y, left }) {
       {kind === 'maiz' && (<g><ellipse cx="0" cy="-6" rx="14" ry="30" fill="#FFD23F" {...OUT} strokeWidth={5} /><path d="M -14 10 Q -22 30 -6 34 M 14 10 Q 22 30 6 34" fill="#7ED957" {...OUT} strokeWidth={4} /></g>)}
       {kind === 'lechuga' && <circle cx="0" cy="-6" r="26" fill="#7ED957" {...OUT} strokeWidth={5} />}
       {TRASH.includes(kind) && <TrashItem kind={kind} x={0} y={-6} s={1.1} rot={-10} />}
+      {kind === 'piedra' && <Piedra x={0} y={-4} s={1.1} />}
+      {kind === 'mango' && <Mango x={0} y={-4} s={1.2} />}
+      {kind === 'libreta' && (<g transform="rotate(-8)"><rect x="-34" y="-50" width="68" height="84" rx="8" fill="#FFF8E0" {...OUT} strokeWidth={5} /><path d="M -22 -26 L 22 -26 M -22 -10 L 22 -10 M -22 6 L 14 6 M -22 22 L 6 22" stroke="#7FB6E6" strokeWidth="4" strokeLinecap="round" /><rect x="-34" y="-50" width="68" height="14" rx="6" fill="#FF6FB5" {...OUT} strokeWidth={4} /><g transform="translate(30 -6) rotate(35)"><rect x="-6" y="-46" width="12" height="52" fill="#FFD23F" {...OUT} strokeWidth={4} /><path d="M -6 6 L 6 6 L 0 20 Z" fill="#F5D7A8" {...OUT} strokeWidth={4} /></g></g>)}
       {kind === 'manzana' && (<g><circle cx="0" cy="-4" r="24" fill="#FF3B3B" {...OUT} strokeWidth={5} /><path d="M 0 -26 Q 12 -40 22 -32" fill="#3FB34F" {...OUT} strokeWidth={4} /></g>)}
     </g>
   );
 }
+
+const Piedra = ({ x, y, s = 1, rot = 0 }) => (<g transform={`translate(${x} ${y}) rotate(${rot}) scale(${s})`}><path d="M -22 4 Q -24 -14 -6 -18 Q 14 -22 22 -6 Q 26 12 6 16 Q -16 20 -22 4 Z" fill="#A9A39A" {...OUT} strokeWidth={5} /><ellipse cx="-6" cy="-8" rx="7" ry="4" fill="#fff" opacity="0.45" /></g>);
+const Mango = ({ x, y, s = 1, rot = 0 }) => (<g transform={`translate(${x} ${y}) rotate(${rot}) scale(${s})`}><path d="M 0 -24 Q 20 -22 20 2 Q 18 26 -2 24 Q -20 20 -18 -2 Q -16 -24 0 -24 Z" fill="#FFB320" {...OUT} strokeWidth={4} /><path d="M -12 -4 Q -10 12 4 16" fill="none" stroke="#FF7A1A" strokeWidth="6" strokeLinecap="round" opacity="0.7" /><path d="M 0 -24 Q 8 -36 18 -34" fill="none" stroke="#3FB34F" strokeWidth="6" strokeLinecap="round" /></g>);
 
 function TrashItem({ kind, x, y, s = 1, rot = 0, o = 1 }) {
   if (s <= 0.02) return null;
@@ -568,7 +605,7 @@ function memberPose(m, u, T, sc) {
       if (ua > 0.3) {
         const ph = (ua - 0.3) % 1.6, n = Math.floor((ua - 0.3) / 1.6);
         p.rArm = lerp(-30, 138, bump(ph, 0, 0.8));
-        p.bites = Math.min(3, n + (ph > 0.4 ? 1 : 0));
+        p.bites = m.loopEat ? (ph > 0.45 ? 1 : 0) + (ph > 0.95 ? 1 : 0) : Math.min(3, n + (ph > 0.4 ? 1 : 0)); // en el huerto agarra otra zanahoria cada vez
         if (ph > 0.45 && ph < 1.4) { p.mouth = 0.28 * Math.abs(Math.sin(T * 14)); p.eyes = 'happy'; }
       } else p.rArm = -30;
       if (p.bites >= 3) p.food = null;
@@ -588,6 +625,31 @@ function memberPose(m, u, T, sc) {
       const t0 = a + 0.3, rel = a + 1.0;
       if (u < rel) { p.food = m.objeto || TRASH[(sc.idx + m.i) % 4]; p.rArm = lerp(-14, 120, EZ.settle(seg(u, t0, rel - 0.15))); }
       else { const sw = seg(u, rel, rel + 0.25); p.rArm = sw < 1 ? lerp(120, -110, EZ.settle(sw)) : lerp(-110, -14, EZ.settle(seg(u, rel + 0.5, rel + 1.0))); p.lean = 10 * bump(u, rel - 0.1, rel + 0.5); }
+      break;
+    }
+    case 'apedrear': {
+      // Tira piedras al palo: agarra la piedra, echa el brazo para atrás y la lanza.
+      let th = null;
+      for (const x of m.throws || []) if (u >= x.w) th = x;
+      if (th) {
+        if (u < th.r) { p.food = 'piedra'; p.rArm = lerp(-14, 125, EZ.settle(seg(u, th.w, th.r - 0.1))); p.lean = -6 * p.dir * seg(u, th.w, th.r); }
+        else { const sw = seg(u, th.r, th.r + 0.22); p.rArm = sw < 1 ? lerp(125, -125, EZ.settle(sw)) : lerp(-125, -14, EZ.settle(seg(u, th.r + 0.4, th.r + 0.9))); p.lean = 10 * p.dir * bump(u, th.r - 0.1, th.r + 0.5); }
+        p.look = 0.5;
+      }
+      break;
+    }
+    case 'rugir': {
+      const r0 = m.roar, k = bump(u, r0 - 0.15, r0 + 2.0) > 0 ? EZ.settle(seg(u, r0 - 0.15, r0 + 0.1)) * (1 - EZ.settle(seg(u, r0 + 1.7, r0 + 2.0))) : 0;
+      if (k > 0) {
+        p.mouth = Math.max(p.mouth, k * (0.85 + 0.15 * Math.sin(T * 30))); p.mood = 'smile';
+        p.rArm = lerp(p.rArm, -150, k); p.lArm = lerp(p.lArm, 150, k); p.lean = -7 * p.dir * k; p.sx *= 1 + 0.06 * k; p.sy *= 1 + 0.06 * k;
+        p.tilt = -4 * k + 2 * Math.sin(T * 40) * k;
+      }
+      break;
+    }
+    case 'anotar': {
+      // Gallina Clota con su libretita: la sostiene y anota con el lápiz.
+      p.food = 'libreta'; p.rArm = 38 + (m.scribble && m.scribble.some((t) => u >= t && u < t + 0.5) ? 5 * Math.sin(T * 38) : 0);
       break;
     }
     case 'dormir': if (on) { p.eyes = 'sleep'; p.mood = 'sleep'; p.tilt = 10 * EZ.settle(seg(u, a, a + 1)); p.sy *= 1 + 0.03 * Math.sin(T * 1.8); p.rArm = 6; p.lArm = -6; } break;
@@ -611,15 +673,16 @@ function memberPose(m, u, T, sc) {
     p.rArm = lerp(p.rArm, 42, hold); p.lArm = lerp(p.lArm, -42, hold);
     if (u > m.receiveAt) { p.eyes = 'happy'; if (u < m.receiveAt + 1.3) p.mood = 'laugh'; }
   }
-  if (m.speak && u >= m.speak[0] && u < m.speak[1] && p.eyes !== 'sleep') { p.mouth = Math.max(p.mouth, 0.25 + 0.6 * Math.abs(Math.sin(T * 13))); p.tilt += 3 * Math.sin(T * 6); }
+  if (((m.speak && u >= m.speak[0] && u < m.speak[1]) || (m.speaks || []).some(([a0, a1]) => u >= a0 && u < a1)) && p.eyes !== 'sleep') { p.mouth = Math.max(p.mouth, 0.25 + 0.6 * Math.abs(Math.sin(T * 13))); p.tilt += 3 * Math.sin(T * 6); }
   return p;
 }
 
 // ── Planning ─────────────────────────────────────────────────────────────
 // nd = segundos de la narración grabada para esta escena (0 si no hay audio).
 // dd = { id: segundos } de los diálogos grabados con la voz de cada personaje.
-function planScene(raw, idx, fmt, age, nd = 0, dd = {}) {
-  const baby = age !== 'ninos', pace = baby ? 1.12 : 1;
+// dl = [segundos, ...] de cada frase del diálogo (campo "dialogo"), en orden.
+function planScene(raw, idx, fmt, age, nd = 0, dd = {}, dl = []) {
+  const baby = age !== 'ninos' && !raw._corto, pace = baby ? 1.12 : 1; // el Short va a ritmo de niños (más ágil)
   const halfW = fmt.W / 2 / fmt.s;
   const cast = raw.personajes || [];
   const n = cast.length;
@@ -630,7 +693,7 @@ function planScene(raw, idx, fmt, age, nd = 0, dd = {}) {
   const members = cast.map((c, i) => {
     const x = (i - (n - 1) / 2) * spacing;
     const dir = x < -1 ? -1 : 1;
-    return { id: c.id, action: c.accion, entrance: c.entrada, dice: c.dice, hacia: c.hacia, objeto: c.objeto, x, k, dir, look: (x < -1 ? 0.45 : x > 1 ? -0.45 : 0) * dir, seed: idx * 1.7 + i * 2.3, tracks: [], i };
+    return { id: c.id, action: c.accion, entrance: c.entrada, dice: c.dice, hacia: c.hacia, objeto: c.objeto, salida: c.salida, veces: c.veces || 3, x, k, dir, look: (x < -1 ? 0.45 : x > 1 ? -0.45 : 0) * dir, seed: idx * 1.7 + i * 2.3, tracks: [], i };
   });
   let order = 0;
   members.forEach((m) => {
@@ -678,7 +741,33 @@ function planScene(raw, idx, fmt, age, nd = 0, dd = {}) {
     else { m.give = contact + 0.3; t.receiveAt = contact + 0.8; m.giftT = t; ev(contact + 0.8, 'tada'); }
     oneShot = Math.max(oneShot, contact + 2.4);
   });
-  let st = Math.max(entDone, sc.doorOpen ? sc.doorOpen + 0.7 : 0) + 0.3;
+  // ── Saga "goza y no goza": palo de mango, piedras, rugido, pájaros, huerto ──
+  Object.assign(sc, { palo: raw.palo || null, mangos: raw.mangos || 0, zopilotes: raw.zopilotes || 0, pajaritos: raw.pajaritos || 0, huerto: raw.huerto || null, rama: !!raw.rama });
+  sc.treeX = halfW * (fmt.id === 'vertical' ? 0.4 : 0.5);
+  sc.falls = []; sc.stones = [];
+  let busy = 0, hitEnd = 0;
+  members.forEach((m) => {
+    if (m.action === 'apedrear' && sc.palo) {
+      m.dir = sc.treeX >= m.x ? 1 : -1; m.look = 0.5; m.throws = [];
+      let t = m.actStart + 0.2;
+      for (let q = 0; q < m.veces; q++) {
+        const r = t + 0.55, hit = r + 0.5, last = q === m.veces - 1;
+        m.throws.push({ w: t, r });
+        const stn = { from: m, r, hit, q, last, golpe: last && raw.golpe ? members.find((o) => o.id === raw.golpe && o !== m) : null };
+        sc.stones.push(stn);
+        ev(r, 'swish'); ev(hit, 'toc');
+        if (last && raw.rama) { sc.ramaT = hit; ev(hit + 0.05, 'crac'); }
+        else if (sc.falls.length < sc.mangos) { sc.falls.push({ t: hit + 0.05, j: sc.falls.length }); ev(hit + 0.8, 'mango'); }
+        if (stn.golpe) { stn.bonk = hit + 0.6; sc.golpeT = stn.bonk; ev(stn.bonk, 'bonk'); stn.golpe.action = 'asustarse'; stn.golpe.actStart = stn.bonk - 0.3; }
+        hitEnd = Math.max(hitEnd, hit + 1.6);
+        t += 1.5;
+      }
+    }
+    if (m.action === 'rugir') { m.roar = m.actStart + 0.5; sc.roarT = m.roar; busy = Math.max(busy, m.roar + 2.1); }
+  });
+  if (raw.vuelan) sc.vuelanT = sc.roarT != null ? sc.roarT + 0.35 : 1.0;
+  if (sc.golpeT) busy = Math.max(busy, sc.golpeT + 0.5);
+  let st = Math.max(entDone, sc.doorOpen ? sc.doorOpen + 0.7 : 0, busy) + 0.3;
   // Si algún personaje tiene su diálogo grabado, habla después del narrador para que no se pisen.
   sc.dialogos = [];
   if (nd > 0 && members.some((m) => m.dice && dd[m.id] > 0)) st = Math.max(st, 0.4 + nd + 0.3);
@@ -691,30 +780,74 @@ function planScene(raw, idx, fmt, age, nd = 0, dd = {}) {
     else ev(st, 'voz', { id: m.id, n: words(m.dice).length });
     st += len + 0.25;
   });
+  // Diálogo entre personajes: una frase detrás de otra, cada una con su audio (si existe).
+  sc.lines = [];
+  if (nd > 0 && (raw.dialogo || []).length) st = Math.max(st, 0.4 + nd + 0.3);
+  (raw.dialogo || []).forEach((l, q) => {
+    const m = members.find((o) => o.id === l.id);
+    if (!m) return;
+    const ad = Number(dl[q]) || 0, nw = words(l.dice).length;
+    const len = ad > 0 ? ad + 0.1 : clamp(0.9 + nw * 0.36, 1.6, 10) * pace;
+    (m.speaks = m.speaks || []).push([st, st + len]);
+    sc.lines.push({ id: l.id, dice: l.dice, t0: st, t1: st + len, k: q, audio: ad > 0 });
+    if (!(ad > 0)) ev(st, 'voz', { id: l.id, n: Math.min(4, nw) });
+    st += len + 0.35;
+  });
+  const linesEnd = sc.lines.length ? sc.lines[sc.lines.length - 1].t1 : 0;
+  // Gallina Clota anota en la libretita al empezar y cada vez que habla.
+  members.forEach((m) => {
+    if (m.action !== 'anotar') return;
+    m.scribble = [m.actStart + 0.5, ...(m.speaks || []).map(([a0]) => a0 + 0.2)];
+    m.scribble.forEach((t) => ev(t, 'garabato'));
+  });
+  // Los que se van corriendo salen después de su última frase.
+  let exitEnd = 0;
+  members.forEach((m) => {
+    if (!m.salida) return;
+    const lastSpeak = Math.max(0, ...(m.speaks || []).map(([, a1]) => a1));
+    m.exitT = Math.max(lastSpeak, m.actStart + 1) + 0.25;
+    sc.exitT = sc.exitT == null ? m.exitT : Math.min(sc.exitT, m.exitT);
+    exitEnd = Math.max(exitEnd, m.exitT + 1.3);
+  });
+  if (raw.vuelven) sc.vuelvenT = Math.max(linesEnd, entDone) + 0.3;
   const capW = words(sc.texto).length;
   sc.cap = [0.4, 0.4 + capW * (baby ? 0.42 : 0.34)];
   // Con narración real, el subtítulo dura exactamente lo que dura el audio.
   if (nd > 0) { sc.narr = [0.4, 0.4 + nd]; if (capW) sc.cap = [0.4, 0.4 + nd]; }
   if (sc.kind === 'title') sc.ban = [0.35, 4.2];
   else if (sc.kind === 'fin') sc.ban = [1.0, 5.6];
+  else if (sc.palabra && raw.palabraLinea && sc.lines[raw.palabraLinea - 1]) { const l = sc.lines[raw.palabraLinea - 1]; sc.ban = [l.t0, Math.max(l.t1 + 0.3, l.t0 + 2.6)]; }
   else if (sc.palabra) sc.ban = [inDoor ? sc.doorOpen + 0.35 : Math.max(0.9, entDone - 0.2), 0];
   if (sc.ban && !sc.ban[1]) sc.ban[1] = sc.ban[0] + 2.6;
   if (sc.ban) ev(sc.ban[0], 'chime');
-  let dur = Math.max(baby ? 6 : 5, st + 0.6, sc.cap[1] + 1.3, sc.ban ? sc.ban[1] + 0.35 : 0, oneShot + 0.4, sc.doorOpen ? sc.doorOpen + 2.8 : 0, entDone + 2.2);
-  if (sc.kind === 'title') dur = 4.6;
-  if (sc.kind === 'fin') dur = 6;
-  dur = Math.min(dur, 15);
+  let dur = Math.max(raw._corto ? 4 : baby ? 6 : 5, st + 0.6, sc.cap[1] + 1.3, sc.ban ? sc.ban[1] + 0.35 : 0, oneShot + 0.4, sc.doorOpen ? sc.doorOpen + 2.8 : 0, entDone + 2.2);
+  dur = Math.max(dur, linesEnd + 0.9, exitEnd + 0.4, sc.vuelvenT != null ? sc.vuelvenT + 3.8 : 0, sc.roarT != null ? sc.roarT + 2.6 : 0, hitEnd);
+  if (sc.kind === 'title') dur = raw._corto ? 3.0 : 4.6;
+  if (sc.kind === 'fin') dur = raw._corto ? 4.0 : 6;
+  dur = Math.min(dur, sc.lines.length ? 60 : 15);
   // La escena nunca termina antes que su narración (deja 0.7 s de respiro al final).
   if (sc.narr) dur = Math.max(dur, sc.narr[1] + 0.7);
   dur = Math.round(dur * 10) / 10;
   sc.dur = dur;
+  // Música: ánimo de la escena, que cambia en algunos momentos (después del golpe, cuando vuelven los pájaros).
+  sc.moods = raw.musica || raw._mood ? [[0, raw.musica || raw._mood]] : [];
+  if (sc.golpeT != null && raw.musica === 'accion') sc.moods.push([sc.golpeT + 0.5, 'tranquila']);
+  if (sc.vuelvenT != null && sc.moods.length) sc.moods.push([sc.vuelvenT, 'fiesta']);
+  // Sonidos reales (carpeta sonidos/): en qué segundo de la escena suena cada uno.
+  const marca = { inicio: 0.3, golpe: sc.golpeT, rugido: sc.roarT, vuelan: sc.vuelanT, vuelven: sc.vuelvenT, rama: sc.ramaT, salida: sc.exitT };
+  sc.sonidos = (raw.sonidos || []).map((x) => {
+    let t = typeof x.en === 'number' ? x.en : marca[x.en];
+    if (typeof x.en === 'string' && x.en.startsWith('linea')) t = (sc.lines[(parseInt(x.en.slice(5), 10) || 1) - 1] || {}).t0;
+    return { id: x.id, vol: x.vol, t };
+  }).filter((x) => x.t != null && isFinite(x.t) && x.t < dur);
   members.forEach((m) => {
     const a = m.actStart, x = lastX(m), end = dur - 0.4;
+    if (m.salida) { m.tracks.push({ t0: m.exitT, t1: m.exitT + 1.3, x0: x, x1: (m.salida === 'derecha' ? 1 : -1) * (halfW + 330), n: 4, h: 42 }); m.tracks.sort((A, B) => A.t0 - B.t0); }
     const rep = (per, h, snd) => { const nn = Math.floor((end - a) / per); if (nn >= 1) m.tracks.push({ t0: a, t1: a + nn * per, x0: x, x1: x, n: nn, h, snd }); };
     if (m.action === 'saltar') rep(1.0 * pace, 85, true);
     if (m.action === 'caminar') rep(0.6, 26);
     if (m.action === 'bailar') rep(0.85, 34);
-    if (m.action === 'correr') {
+    if (m.action === 'correr' && !m.salida) {
       const R = Math.min(Math.max(spacing * 0.45, 150), 230); let t = a, i = 0, from = x;
       while (t + 1.1 <= end) { const to = x + (i % 2 ? -R : R); m.tracks.push({ t0: t, t1: t + 1.1, x0: from, x1: to, n: 3, h: 38 }); from = to; t += 1.1; i++; }
     }
@@ -722,7 +855,8 @@ function planScene(raw, idx, fmt, age, nd = 0, dd = {}) {
     if (m.action === 'recoger') for (let t = a + 0.3 + 0.9; t < dur - 0.3; t += 2.2) ev(t, 'pop');
     if (m.action === 'asustarse') { m.tracks.push({ t0: a + 0.3, t1: a + 0.85, x0: x, x1: x, n: 1, h: 120 }); ev(a + 0.3, 'boing'); }
     if (m.receiveAt != null) m.tracks.push({ t0: m.receiveAt + 0.1, t1: m.receiveAt + 0.7, x0: x, x1: x, n: 1, h: 60 });
-    if (m.action === 'comer') for (let b = 0; b < 3; b++) ev(a + 0.3 + 0.45 + b * 1.6, 'nom');
+    if (m.action === 'comer' && sc.huerto && sc.huerto.comer) { m.loopEat = true; sc.eat = [a + 0.3, dur - 0.6]; for (let t = a + 0.75; t < dur - 0.4; t += 0.8) ev(t, 'nom'); }
+    else if (m.action === 'comer') for (let b = 0; b < 3; b++) ev(a + 0.3 + 0.45 + b * 1.6, 'nom');
     if (m.action === 'dormir') for (let t = a + 1; t < dur; t += 2.6) ev(t, 'snore');
     if (m.action === 'reir') for (let t = a; t < dur - 0.5; t += 3.5) ev(t, 'laugh');
     m.tracks.sort((A, B) => A.t0 - B.t0);
@@ -739,16 +873,18 @@ function planStory(story, fmt, age, narr) {
   const list = [];
   const esc = st.escenas.length ? st.escenas : [{ lugar: 'pueblito', texto: '', palabra: '', personajes: [{ id: 'conejo', accion: 'saludar', entrada: 'aparece' }] }];
   const first = esc[0], last = esc[esc.length - 1];
-  list.push({ _title: true, lugar: first.lugar, palabra: st.titulo.toUpperCase(), personajes: [{ id: (first.personajes[0] || {}).id || 'conejo', accion: 'saludar', entrada: 'aparece' }] });
-  esc.forEach((e, i) => list.push(Object.assign({}, e, { src: i })));
+  const conMusica = esc.some((e) => e.musica);
+  list.push({ _title: true, _corto: st.corto, _mood: conMusica ? 'tranquila' : null, lugar: first.lugar, palabra: st.titulo.toUpperCase(), personajes: [{ id: (first.personajes[0] || {}).id || 'conejo', accion: 'saludar', entrada: 'aparece' }] });
+  esc.forEach((e, i) => list.push(Object.assign({}, e, { src: i, _corto: st.corto })));
   const ids = [];
   esc.forEach((e) => e.personajes.forEach((c) => { if (!ids.includes(c.id)) ids.push(c.id); }));
-  list.push({ _fin: true, lugar: last.lugar, palabra: '¡FIN!', personajes: (ids.length ? ids : ['conejo']).slice(0, 5).map((id) => ({ id, accion: 'bailar', entrada: 'aparece' })) });
+  list.push({ _fin: true, _corto: st.corto, _mood: conMusica ? 'fiesta' : null, texto: st.finTexto, lugar: last.lugar, palabra: '¡FIN!', personajes: (ids.length ? ids : ['conejo']).slice(0, 5).map((id) => ({ id, accion: 'bailar', entrada: 'aparece' })) });
   let t = 0;
   const scenes = list.map((raw, i) => {
-    const nd = !narr ? 0 : raw._title ? Number(narr.titulo) || 0 : raw._fin ? 0 : Number((narr.escenas || [])[raw.src]) || 0;
+    const nd = !narr ? 0 : raw._title ? Number(narr.titulo) || 0 : raw._fin ? Number(narr.fin) || 0 : Number((narr.escenas || [])[raw.src]) || 0;
     const dd = !narr || raw._title || raw._fin ? {} : ((narr.dialogos || [])[raw.src] || {});
-    const sc = planScene(raw, i, fmt, age, nd, dd);
+    const dl = !narr || raw._title || raw._fin ? [] : ((narr.lineas || [])[raw.src] || []);
+    const sc = planScene(raw, i, fmt, age, nd, dd, dl);
     sc.start = t; t += sc.dur;
     sc.label = sc.kind === 'title' ? 'Título' : sc.kind === 'fin' ? 'Fin' : `${sc.src + 1} · ${PLACES[sc.lugar]}`;
     return sc;
@@ -874,7 +1010,7 @@ function Stall({ x, c1, c2, fruits }) {
     </g>
   );
 }
-function Backdrop({ kind, T, W, sucia }) {
+function Backdrop({ kind, T, W, sucia, palo }) {
   const gnd = GROUND[kind] || GROUND.pueblito;
   const ground = (<g><rect x={-W - 400} y="0" width={W * 2 + 800} height="1600" fill={gnd} /><path d={`M ${-W - 400} 0 L ${W + 400} 0`} {...OUT} /></g>);
   const clouds = (c) => (<g><Cloud x={-560 + Math.sin(T * 0.12) * 60} y={-640} s={1} c={c} /><Cloud x={420 - Math.sin(T * 0.1) * 50} y={-700} s={0.85} c={c} /><Cloud x={-150} y={-980} s={0.9} c={c} /><Cloud x={1300} y={-620} s={0.9} c={c} /></g>);
@@ -887,7 +1023,7 @@ function Backdrop({ kind, T, W, sucia }) {
           {Array.from({ length: 14 }).map((_, j) => <Tree key={j} x={-1700 + j * 260} s={0.75} c1="#7ED98A" c2="#8FE39A" fruit={null} />)}
           {ground}
           <path d="M -300 -900 L -180 -900 L 120 0 L -160 0 Z M 360 -900 L 440 -900 L 640 0 L 460 0 Z" fill="#fff" opacity="0.13" />
-          <Tree x={-760} s={1.15} c1="#2E9E44" c2="#3FB34F" fruit="#FFD23F" /><Tree x={800} s={1.2} c1="#2E9E44" c2="#3FB34F" fruit="#FFD23F" />
+          <Tree x={-760} s={1.15} c1="#2E9E44" c2="#3FB34F" fruit="#FFD23F" />{!palo && <Tree x={800} s={1.2} c1="#2E9E44" c2="#3FB34F" fruit="#FFD23F" />}
           {[[-470, '#FF4B4B'], [560, '#FF6FB5']].map(([mx, mc]) => (
             <g key={mx} transform={`translate(${mx} 0)`}><rect x="-14" y="-60" width="28" height="60" rx="10" fill="#FFF5E6" {...OUT} strokeWidth={5} /><path d="M -56 -54 Q -50 -112 0 -116 Q 50 -112 56 -54 Z" fill={mc} {...OUT} strokeWidth={5} /><circle cx="-18" cy="-86" r="8" fill="#fff" /><circle cx="16" cy="-94" r="6" fill="#fff" /></g>
           ))}
@@ -1009,6 +1145,140 @@ function Casita({ x, open, shake, c, id, children }) {
   );
 }
 
+// ── Saga "goza y no goza": palo, pájaros, huerto, piedras ──────────────────
+const MANGO_SPOTS = [[-150, -380], [-60, -350], [40, -372], [140, -385], [-105, -470], [92, -482], [0, -430], [175, -452]];
+const PERCH_Z = [[-150, -542], [150, -552], [0, -652], [-78, -606]];
+const PERCH_P = [[-215, -452], [222, -462], [-84, -560], [94, -578], [-168, -505], [182, -505]];
+const BIRD_COL = ['#FFD23F', '#FF5D8F', '#4FA3F7', '#FF8C42', '#7EE0C3', '#B9A6FF'];
+const fallY = (q) => q * q; // cae acelerando, como de verdad
+function Zopilote({ x, y, s = 1, flap = 0, dir = 1 }) {
+  const a = flap ? 40 * Math.sin(flap) : 0;
+  return (
+    <g transform={`translate(${x} ${y}) scale(${s * dir} ${s})`}>
+      {flap ? [-1, 1].map((k) => <ellipse key={k} cx={k * 50} cy={-6} rx="54" ry="16" fill="#2B2B35" transform={`rotate(${k * a} 0 -6)`} {...OUT} strokeWidth={5} />) : null}
+      <ellipse cx="0" cy="0" rx="40" ry="32" fill="#2B2B35" {...OUT} strokeWidth={5} />
+      {!flap && <ellipse cx="-8" cy="4" rx="26" ry="18" fill="#3D3D4A" {...OUT} strokeWidth={4} />}
+      <path d="M -10 30 L -14 44 M 10 30 L 14 44" stroke="#C9A27A" strokeWidth="6" strokeLinecap="round" />
+      <circle cx="30" cy="-30" r="17" fill="#9A9AA6" {...OUT} strokeWidth={5} />
+      <path d="M 44 -34 Q 62 -32 56 -18 L 46 -24 Z" fill="#E8E2D0" {...OUT} strokeWidth={4} />
+      <circle cx="33" cy="-34" r="4" fill={INK} />
+    </g>
+  );
+}
+function Pajarito({ x, y, c, flap = 0, dir = 1, T = 0 }) {
+  const a = flap ? 50 * Math.sin(flap) : 10 * Math.sin(T * 3 + x);
+  return (
+    <g transform={`translate(${x} ${y}) scale(${dir} 1)`}>
+      <ellipse cx="-6" cy="-6" rx="16" ry="9" fill={c} transform={`rotate(${-20 - a} 0 -4)`} {...OUT} strokeWidth={4} />
+      <circle cx="0" cy="0" r="17" fill={c} {...OUT} strokeWidth={4} />
+      <path d="M 14 -6 L 28 -2 L 14 3 Z" fill="#FF9F1C" {...OUT} strokeWidth={3} />
+      <circle cx="6" cy="-6" r="3.5" fill={INK} />
+      <path d="M -16 2 L -28 -4 L -26 8 Z" fill={c} {...OUT} strokeWidth={3} />
+    </g>
+  );
+}
+function Palo({ sc, u, T }) {
+  if (!sc.palo) return null;
+  const mango = sc.palo === 'mango', X = sc.treeX;
+  const fallen = sc.falls.filter((f) => u >= f.t).length;
+  const onTree = Math.max(0, sc.mangos - fallen);
+  const rk = sc.ramaT != null ? seg(u, sc.ramaT, sc.ramaT + 0.35) : 0, rd = sc.ramaT != null ? seg(u, sc.ramaT + 0.3, sc.ramaT + 0.95) : 0;
+  const canopy = mango ? ['#2E9E44', '#3FB34F'] : ['#3C8F3A', '#4FA845'];
+  const birdsOut = sc.vuelanT != null ? EZ.glide(seg(u, sc.vuelanT, sc.vuelanT + 1.6)) : 0;
+  const birdsIn = sc.vuelvenT != null ? seg(u, sc.vuelvenT, sc.vuelvenT + 2.0) : 1;
+  return (
+    <g transform={`translate(${X} 0)`}>
+      <path d="M -40 0 Q -30 -150 -26 -300 L 26 -300 Q 30 -150 40 0 Z" fill="#8B5A3C" {...OUT} />
+      <path d="M -12 -250 L -170 -380 M 8 -300 L -10 -440" stroke={INK} strokeWidth="34" strokeLinecap="round" /><path d="M -12 -250 L -170 -380 M 8 -300 L -10 -440" stroke="#8B5A3C" strokeWidth="22" strokeLinecap="round" />
+      {[[-150, -430, 112], [150, -440, 112], [0, -522, 132], [-62, -400, 92], [82, -410, 92]].map(([cx, cy, r], j) => <circle key={j} cx={cx} cy={cy} r={r} fill={j % 2 ? canopy[1] : canopy[0]} {...OUT} />)}
+      <circle cx="-40" cy="-560" r="26" fill="#fff" opacity="0.22" />
+      {mango && MANGO_SPOTS.slice(0, onTree).map(([mx, my], j) => <Mango key={j} x={mx} y={my + Math.sin(T * 2 + j) * 2} s={1.1} />)}
+      {/* La rama que se quiebra (a la derecha del palo). */}
+      {(sc.rama || mango) && (
+        <g transform={`translate(${rd * 40} ${rd * 292}) rotate(${rk * 55 * (1 - rd) + 15 * rd} 30 -300)`}>
+          <path d="M 30 -300 L 250 -360" stroke={INK} strokeWidth="30" strokeLinecap="round" /><path d="M 30 -300 L 250 -360" stroke="#8B5A3C" strokeWidth="18" strokeLinecap="round" />
+          <circle cx="262" cy="-372" r="62" fill={canopy[1]} {...OUT} />
+          {mango && <Mango x={270} y={-350} s={1.05} />}
+        </g>
+      )}
+      {sc.ramaT != null && u >= sc.ramaT && <path d="M 22 -300 L 52 -312 L 44 -296 Z" fill="#F5D7A8" {...OUT} strokeWidth={4} />}
+      {PERCH_Z.slice(0, sc.zopilotes).map(([zx, zy], j) => {
+        const dir = zx >= 0 ? 1 : -1, q = birdsOut;
+        if (q >= 1) return null;
+        return <Zopilote key={`z${j}`} x={zx + dir * 900 * q} y={zy - 650 * q - (q ? 0 : Math.abs(Math.sin(T * 1.3 + j)) * 3)} s={0.95} dir={-dir} flap={q > 0 ? T * 18 + j : 0} />;
+      })}
+      {PERCH_P.slice(0, sc.pajaritos).map(([px, py], j) => {
+        const dir = px >= 0 ? 1 : -1;
+        if (birdsOut >= 1) return null;
+        let x = px + dir * 800 * birdsOut, y = py - 600 * birdsOut - Math.abs(Math.sin(T * 5 + j)) * 6, fl = birdsOut > 0 ? T * 26 + j : 0;
+        if (birdsIn < 1) { if (birdsIn <= 0) return null; const k = EZ.settle(birdsIn); x = lerp(dir * 1300, px, k); y = lerp(-1000, py, k) - Math.sin(k * Math.PI) * 80; fl = T * 26 + j; }
+        return <Pajarito key={`p${j}`} x={x} y={y} c={BIRD_COL[j % 6]} dir={-dir} flap={fl} T={T} />;
+      })}
+      {/* Notas que cantan los pajaritos mientras están en el palo. */}
+      {sc.pajaritos > 0 && birdsOut === 0 && birdsIn >= 1 && [0, 1, 2].map((q) => {
+        const [px, py] = PERCH_P[(q * 2) % sc.pajaritos], ph = ((T * 0.6 + q * 0.37) % 1);
+        return <text key={`n${q}`} x={px + 20 + ph * 40} y={py - 30 - ph * 120} fontFamily={FD} fontSize={44} fill={BIRD_COL[q]} stroke={INK} strokeWidth="5" paintOrder="stroke" opacity={1 - ph}>♪</text>;
+      })}
+    </g>
+  );
+}
+// Mangos que caen del palo y quedan en el suelo.
+function MangosCaidos({ sc, u }) {
+  if (!sc.palo || !sc.falls.length) return null;
+  return (
+    <g>
+      {sc.falls.map((f) => {
+        if (u < f.t) return null;
+        const [mx, my] = MANGO_SPOTS[Math.max(0, sc.mangos - 1 - f.j)], q = seg(u, f.t, f.t + 0.75);
+        const gx = sc.treeX + mx * 0.9 + (f.j % 2 ? 40 : -50), y = lerp(my, -18, fallY(q)) - (q >= 1 ? 22 * bump(u, f.t + 0.75, f.t + 1.05) : 0);
+        return <Mango key={f.j} x={lerp(sc.treeX + mx, gx, q)} y={y} s={1.1} rot={q * 200} />;
+      })}
+    </g>
+  );
+}
+function Piedras({ sc, u, poses }) {
+  if (!sc.stones.length) return null;
+  const out = [];
+  sc.stones.forEach((st, j) => {
+    if (u < st.r) return;
+    const m = st.from, p = poses[sc.members.indexOf(m)];
+    const hx = p.x + 70 * m.dir * m.k, hy = -260 * m.k;
+    const tx = sc.treeX + (st.last && sc.rama ? 200 : -90 + st.q * 70), ty = st.last && sc.rama ? -370 : -440 + st.q * 25;
+    if (u < st.hit) { const q = seg(u, st.r, st.hit); out.push(<Piedra key={`s${j}`} x={lerp(hx, tx, q)} y={lerp(hy, ty, q) - Math.sin(q * Math.PI) * 140} s={1.1} rot={q * 720} />); }
+    else if (st.golpe) {
+      const gi = sc.members.indexOf(st.golpe), gp = poses[gi], top = charTop(st.golpe, gp) + 40;
+      if (u < st.bonk) { const q = seg(u, st.hit, st.bonk); out.push(<Piedra key={`s${j}`} x={lerp(tx, gp.x, q)} y={lerp(ty, top, fallY(q))} s={1.1} rot={q * 400} />); }
+      else { const q = seg(u, st.bonk, st.bonk + 0.7); if (q < 1) out.push(<Piedra key={`s${j}`} x={gp.x + 160 * q} y={lerp(top, -12, q) - Math.sin(q * Math.PI) * 110} s={1.1} rot={q * 300} />); else out.push(<Piedra key={`s${j}`} x={gp.x + 160} y={-12} s={1.1} />); }
+    } else { const q = seg(u, st.hit, st.hit + 0.6); out.push(<Piedra key={`s${j}`} x={tx + 30 * q} y={lerp(ty, -12, fallY(q))} s={1.1} rot={q * 300} />); }
+    out.push(<FxBubble key={`t${j}`} x={tx} y={ty - 110} t={seg(u, st.hit, st.hit + 0.9)} text={st.last && sc.rama ? '¡CRAC!' : '¡TOC!'} size={st.last && sc.rama ? 0.95 : 0.6} fill={st.last && sc.rama ? '#FF8C42' : '#FFD84D'} color="#fff" />);
+    if (st.golpe) { const gp = poses[sc.members.indexOf(st.golpe)]; out.push(<FxBubble key={`b${j}`} x={gp.x - 170} y={charTop(st.golpe, gp) - 40} t={seg(u, st.bonk, st.bonk + 1.1)} text="¡TOC!" size={0.9} fill="#FF6FB5" color="#FFD23F" />); }
+  });
+  return <g>{out}</g>;
+}
+function Huerto({ sc, u, T }) {
+  if (!sc.huerto) return null;
+  const n = sc.huerto.n, ch = sc.members.find((m) => m.id === 'conejo'), cx = ch ? ch.x : 0;
+  const N = Math.max(n, 6), step = 78, x0 = cx - ((N - 1) * step) / 2 - 40;
+  return (
+    <g transform="translate(0 74)">
+      <path d={`M ${x0 - 70} 14 Q ${x0 - 70} -14 ${x0 - 30} -16 L ${x0 + (N - 1) * step + 30} -16 Q ${x0 + (N - 1) * step + 70} -14 ${x0 + (N - 1) * step + 70} 14 Z`} fill="#8B5A3C" {...OUT} strokeWidth={5} />
+      {Array.from({ length: N }).map((_, j) => {
+        const x = x0 + j * step;
+        let gone = j >= n ? 1 : 0;
+        if (!gone && sc.huerto.comer && sc.eat) gone = u >= lerp(sc.eat[0], sc.eat[1], (j + 1) / (n + 1)) ? 1 : 0;
+        if (gone) return <ellipse key={j} cx={x} cy={-6} rx="16" ry="7" fill="#4A2C17" />;
+        const sw = Math.sin(T * 2 + j) * 4;
+        return (
+          <g key={j} transform={`translate(${x} -8)`}>
+            <path d={`M -4 -10 L ${-14 + sw} -54 M 0 -10 L ${sw} -62 M 4 -10 L ${14 + sw} -54`} stroke="#2E9E44" strokeWidth="9" strokeLinecap="round" />
+            <path d="M -15 -12 L 15 -12 L 0 10 Z" fill="#FF8A1F" {...OUT} strokeWidth={4} />
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
 // ── Effects ─────────────────────────────────────────────────────────────
 function Burst({ cx, cy, t, color }) {
   if (t <= 0 || t >= 1) return null;
@@ -1081,6 +1351,11 @@ function Effects({ sc, u, T, poses }) {
         out.push(<FxBubble key={`pl${j}`} x={tx} y={ty - 150} t={seg(u, rel + 0.75, rel + 1.9)} text={river ? '¡PLAF!' : '¡PAF!'} size={0.65} fill="#9FDcFF" color="#fff" />);
       }
     }
+    if (m.action === 'rugir' && m.roar != null) {
+      out.push(<FxBubble key={`gr${j}`} x={p.x + 210 * (p.x > 0 ? -1 : 1)} y={top - 20} t={seg(u, m.roar, m.roar + 1.9)} text="¡GRRR!" size={1.15} fill="#FF8C42" color="#FFD23F" />);
+      const on = bump(u, m.roar, m.roar + 1.8);
+      if (on > 0) [0, 1, 2].forEach((q) => { const r = 120 + ((u - m.roar) * 420 + q * 90) % 300; out.push(<circle key={`rw${j}${q}`} cx={p.x} cy={top + 120} r={r} fill="none" stroke={INK} strokeWidth="6" opacity={on * (1 - (r - 120) / 300) * 0.5} />); });
+    }
     if (m.action === 'comer') out.push(<FxBubble key={`nm${j}`} x={p.x + 150 * p.dir} y={top + 40} t={seg(u, a + 0.7, a + 2.0)} text="¡ÑAM!" size={0.75} fill="#FFD84D" />);
     if (m.action === 'reir') for (let t = a; t < sc.dur - 0.5; t += 3.5) out.push(<FxBubble key={`jj${j}${t}`} x={p.x + 160 * (p.x > 0 ? -1 : 1)} y={top + 20} t={seg(u, t, t + 1.4)} text="¡JA JA!" size={0.7} fill="#7EE0C3" color="#FFD23F" />);
     if (m.action === 'asustarse') {
@@ -1121,11 +1396,16 @@ function SceneWorld({ sc, u, T, fmt, uid }) {
   const kn = sc.knocker;
   const shake = kn ? Math.sin(u * 60) * 4 * (bump(u, kn.knock.ka - 0.02, kn.knock.ka + 0.16) + bump(u, kn.knock.kb - 0.02, kn.knock.kb + 0.16)) : 0;
   const open = sc.door ? EZ.pop(seg(u, sc.doorOpen, sc.doorOpen + 0.25)) : 0;
+  // El rugido y el golpe de la piedra sacuden la pantalla.
+  const sk = (sc.roarT != null ? 12 * bump(u, sc.roarT, sc.roarT + 1.6) : 0) + (sc.golpeT != null ? 7 * bump(u, sc.golpeT, sc.golpeT + 0.35) : 0);
+  const shx = sk ? Math.sin(u * 71) * sk : 0, shy = sk ? Math.cos(u * 53) * sk * 0.6 : 0;
   return (
-    <g>
+    <g transform={sk ? `translate(${shx} ${shy})` : undefined}>
       <Sky kind={sc.lugar} fmt={fmt} T={T} id={uid} />
       <g transform={`translate(${fmt.W / 2} ${fmt.GY}) scale(${s})`}>
-        <Backdrop kind={sc.lugar} T={T} W={halfW + 300} sucia={sc.sucia} />
+        <Backdrop kind={sc.lugar} T={T} W={halfW + 300} sucia={sc.sucia} palo={sc.palo} />
+        <Palo sc={sc} u={u} T={T} />
+        <MangosCaidos sc={sc} u={u} />
         {sc.botes && <RecycleBins halfW={halfW} />}
         <SceneTrash sc={sc} u={u} T={T} />
         {sc.door && (
@@ -1134,8 +1414,10 @@ function SceneWorld({ sc, u, T, fmt, uid }) {
           </Casita>
         )}
         {poses.map((p, j) => (j === dj || p.hidden ? null : <Character key={j} id={sc.members[j].id} p={p} T={T} />))}
+        <Piedras sc={sc} u={u} poses={poses} />
         <Effects sc={sc} u={u} T={T} poses={poses} />
-        <Foreground kind={sc.lugar} />
+        <Huerto sc={sc} u={u} T={T} />
+        {!sc.huerto && <Foreground kind={sc.lugar} />}
         {sc.members.map((m, j) => m.speak && <Speech key={`s${j}`} x={poses[j].x} cx={poses[j].x} y={charTop(m, j === dj ? Object.assign({}, poses[j], { y: 0 }) : poses[j])} t={seg(u, m.speak[0], m.speak[1] + 0.3)} text={m.dice} fs={fmt.bub} halfW={halfW} />)}
       </g>
     </g>
@@ -1170,7 +1452,31 @@ function Banner({ sc, u, fmt }) {
     </div>
   );
 }
+function LineCaption({ l, u, fmt, dur }) {
+  const ws = words(l.dice), [c0, c1] = [l.t0, l.t1];
+  const lit = u < c0 ? -1 : Math.floor(((u - c0) / Math.max(0.01, c1 - c0)) * ws.length);
+  const s = EZ.pop(seg(u, l.t0 - 0.12, l.t0 + 0.1));
+  const [name, col] = NAMES[l.id] || [l.id, INK];
+  return (
+    <div style={{ position: 'absolute', left: 0, right: 0, bottom: fmt.cap.bottom, display: 'flex', justifyContent: 'center', pointerEvents: 'none', padding: '0 30px' }}>
+      <div style={{ position: 'relative', maxWidth: fmt.cap.maxW, background: '#fff', border: `6px solid ${INK}`, borderRadius: 36, padding: '22px 34px 20px', boxShadow: `0 8px 0 ${INK}`, fontFamily: FT, fontWeight: 600, fontSize: fmt.cap.size, lineHeight: 1.22, textAlign: 'center', color: INK, textWrap: 'balance', transform: `scale(${s})`, opacity: s > 0.02 ? 1 : 0 }}>
+        <div style={{ position: 'absolute', top: -fmt.cap.size * 0.62, left: 28, background: col, color: '#fff', border: `5px solid ${INK}`, borderRadius: 999, padding: '2px 22px 4px', fontFamily: FD, fontSize: fmt.cap.size * 0.62, letterSpacing: 1, whiteSpace: 'nowrap' }}>{name}</div>
+        {ws.map((w, j) => (
+          <React.Fragment key={j}>
+            <span style={{ display: 'inline-block', padding: '0 6px', borderRadius: 12, background: j === lit ? '#FFD23F' : 'transparent', color: j < lit ? col : INK, transform: j === lit ? 'scale(1.08)' : 'none' }}>{w}</span>{' '}
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
 function Caption({ sc, u, fmt }) {
+  if (sc.lines && sc.lines.length) {
+    // Con diálogo: se ve la frase de quien está hablando (y antes, la del narrador si hay).
+    const l = sc.lines.find((x, j) => u >= x.t0 - 0.12 && u < x.t1 + 0.8 && !(sc.lines[j + 1] && u >= sc.lines[j + 1].t0 - 0.12));
+    if (l) return <LineCaption l={l} u={u} fmt={fmt} dur={sc.dur} />;
+    if (!sc.texto || u > sc.cap[1] + 0.4) return null;
+  }
   if (!sc.texto) return null;
   const ws = words(sc.texto), [c0, c1] = sc.cap;
   const lit = u < c0 ? -1 : Math.floor(((u - c0) / Math.max(0.01, c1 - c0)) * ws.length);
@@ -1238,7 +1544,7 @@ function StoryPlayer(props) {
   const age = props.age || 'bebes';
   const plan = React.useMemo(() => planStory(props.story, fmt, age, props.narracion), [props.story, fmt, age, props.narracion]);
   React.useEffect(() => {
-    if (props.onPlan) props.onPlan({ key: plan.key, total: plan.total, events: plan.events, scenes: plan.scenes.map((s) => ({ src: s.src, dur: s.dur, kind: s.kind, lugar: s.lugar, start: s.start, narr: s.narr || null, dialogos: s.dialogos || [] })) });
+    if (props.onPlan) props.onPlan({ key: plan.key, total: plan.total, events: plan.events, scenes: plan.scenes.map((s) => ({ src: s.src, dur: s.dur, kind: s.kind, lugar: s.lugar, start: s.start, narr: s.narr || null, dialogos: s.dialogos || [], lines: (s.lines || []).map((l) => ({ k: l.k, id: l.id, t0: l.t0, t1: l.t1, audio: l.audio })), moods: s.moods || [], sonidos: s.sonidos || [] })) });
   }, [plan]);
   const scenesJSON = React.useMemo(() => JSON.stringify(plan.scenes.map((s) => ({ name: s.label, dur: s.dur }))), [plan]);
   const opts = { sound: props.sound !== false, music: props.music !== false, captions: props.captions !== false };
@@ -1252,5 +1558,5 @@ function StoryPlayer(props) {
   );
 }
 
-Object.assign(window, { StoryPlayer, GaruitaSFX: SFX, TC_ENGINE: { sanitizeStory, planStory, IDS, ACTIONS, ENTRIES, PLACES, TRASH } });
+Object.assign(window, { StoryPlayer, GaruitaSFX: SFX, TC_ENGINE: { sanitizeStory, planStory, IDS, ACTIONS, ENTRIES, PLACES, TRASH, MOODS } });
 })();

@@ -37,7 +37,7 @@ function anotarPlan(plan, narracion) {
   if (narracion) {
     plan.scenes.forEach((s) => {
       if (!s.narr) return;
-      const archivo = s.kind === 'title' ? 'titulo.wav' : `escena-${String(s.src + 1).padStart(2, '0')}.wav`;
+      const archivo = s.kind === 'title' ? 'titulo.wav' : s.kind === 'fin' ? 'fin.wav' : `escena-${String(s.src + 1).padStart(2, '0')}.wav`;
       lista.push({ archivo: `voz/${nombre}/${archivo}`, inicio: Math.round((s.start + s.narr[0]) * 1000) / 1000 });
     });
     // Diálogos con la voz de cada personaje, en el momento en que aparece su globito.
@@ -45,7 +45,17 @@ function anotarPlan(plan, narracion) {
       const archivo = `escena-${String(s.src + 1).padStart(2, '0')}-${d.id}.wav`;
       lista.push({ archivo: `voz/${nombre}/${archivo}`, inicio: Math.round((s.start + d.t) * 1000) / 1000 });
     }));
+    // Frases del diálogo (campo "dialogo"): escena-NN-dKK.wav.
+    plan.scenes.forEach((s) => (s.lines || []).forEach((l) => {
+      if (!l.audio) return;
+      const archivo = `escena-${String(s.src + 1).padStart(2, '0')}-d${String(l.k + 1).padStart(2, '0')}.wav`;
+      lista.push({ archivo: `voz/${nombre}/${archivo}`, inicio: Math.round((s.start + l.t0) * 1000) / 1000 });
+    }));
   }
+  // Sonidos reales de animales (carpeta sonidos/), con su volumen.
+  plan.scenes.forEach((s) => (s.sonidos || []).forEach((x) => {
+    lista.push({ archivo: `sonidos/${x.id}.ogg`, inicio: Math.round((s.start + x.t) * 1000) / 1000, vol: x.vol });
+  }));
   window.__garuitaNarracion = lista;
   window.__garuitaPlan = plan;
 }

@@ -140,7 +140,7 @@ function ponerSonido(archivo, lista, pistas, desde, largo) {
   lista.forEach((n) => {
     const i = entradas.length / 2 + 1, ms = Math.max(0, Math.round((n.inicio - desde) * 1000));
     entradas.push('-i', path.join(raiz, n.archivo));
-    filtros.push(`[${i}:a]${estereo},adelay=${ms}:all=1[v${i}]`); mezcla.push(`[v${i}]`);
+    filtros.push(`[${i}:a]${estereo},adelay=${ms}:all=1${n.vol ? `,volume=${Number(n.vol).toFixed(2)}` : ''}[v${i}]`); mezcla.push(`[v${i}]`);
   });
   if (pistas.efectos) {
     const i = entradas.length / 2 + 1; entradas.push('-i', pistas.efectos);
