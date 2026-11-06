@@ -72,7 +72,12 @@ const VOICES = {
 };
 const SFX = {
   ctx: null, listeners: new Set(), buf: null,
-  running() { return !!this.ctx && this.ctx.state === 'running'; },
+  // Al grabar el video, los mismos efectos se dibujan en un contexto sin parlantes
+  // (OfflineAudioContext): `at` es el segundo exacto del efecto y `dest` adónde suena.
+  at: null, dest: null, offline: false,
+  running() { return this.offline || (!!this.ctx && this.ctx.state === 'running'); },
+  now() { return this.at != null ? this.at : this.ctx.currentTime; },
+  out() { return this.dest || this.ctx.destination; },
   unlock() {
     try {
       if (!this.ctx) {
@@ -84,22 +89,22 @@ const SFX = {
   },
   tone({ f, f2, dur = 0.2, type = 'sine', gain = 0.12, delay = 0, vib = 0, lp }) {
     if (!this.running()) return;
-    const c = this.ctx, t0 = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    const c = this.ctx, t0 = this.now() + delay, o = c.createOscillator(), g = c.createGain();
     o.type = type; o.frequency.setValueAtTime(f, t0);
     if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur * 0.85);
     if (vib) { const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = 8; lg.gain.value = vib; l.connect(lg); lg.connect(o.frequency); l.start(t0); l.stop(t0 + dur + 0.05); }
     g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(gain, t0 + 0.015); g.gain.exponentialRampToValueAtTime(0.0008, t0 + dur);
     let n = o; if (lp) { const fl = c.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = lp; o.connect(fl); n = fl; }
-    n.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.05);
+    n.connect(g); g.connect(this.out()); o.start(t0); o.stop(t0 + dur + 0.05);
   },
   noise({ dur = 0.15, gain = 0.12, delay = 0, lp = 700 }) {
     if (!this.running()) return;
     const c = this.ctx;
-    if (!this.buf) { const b = c.createBuffer(1, c.sampleRate * 0.5, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this.buf = b; }
-    const t0 = c.currentTime + delay, s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
+    if (!this.buf || this.buf.sampleRate !== c.sampleRate) { const b = c.createBuffer(1, c.sampleRate * 0.5, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this.buf = b; }
+    const t0 = this.now() + delay, s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
     s.buffer = this.buf; fl.type = 'lowpass'; fl.frequency.value = lp;
     g.gain.setValueAtTime(gain, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
-    s.connect(fl); fl.connect(g); g.connect(c.destination); s.start(t0); s.stop(t0 + dur + 0.05);
+    s.connect(fl); fl.connect(g); g.connect(this.out()); s.start(t0); s.stop(t0 + dur + 0.05);
   },
   voice(id, n) {
     const v = VOICES[id] || VOICES.conejo;
@@ -1233,7 +1238,7 @@ function StoryPlayer(props) {
   const age = props.age || 'bebes';
   const plan = React.useMemo(() => planStory(props.story, fmt, age, props.narracion), [props.story, fmt, age, props.narracion]);
   React.useEffect(() => {
-    if (props.onPlan) props.onPlan({ total: plan.total, scenes: plan.scenes.map((s) => ({ src: s.src, dur: s.dur, kind: s.kind, start: s.start, narr: s.narr || null, dialogos: s.dialogos || [] })) });
+    if (props.onPlan) props.onPlan({ key: plan.key, total: plan.total, events: plan.events, scenes: plan.scenes.map((s) => ({ src: s.src, dur: s.dur, kind: s.kind, lugar: s.lugar, start: s.start, narr: s.narr || null, dialogos: s.dialogos || [] })) });
   }, [plan]);
   const scenesJSON = React.useMemo(() => JSON.stringify(plan.scenes.map((s) => ({ name: s.label, dur: s.dur }))), [plan]);
   const opts = { sound: props.sound !== false, music: props.music !== false, captions: props.captions !== false };
@@ -1247,5 +1252,5 @@ function StoryPlayer(props) {
   );
 }
 
-Object.assign(window, { StoryPlayer, TC_ENGINE: { sanitizeStory, planStory, IDS, ACTIONS, ENTRIES, PLACES, TRASH } });
+Object.assign(window, { StoryPlayer, GaruitaSFX: SFX, TC_ENGINE: { sanitizeStory, planStory, IDS, ACTIONS, ENTRIES, PLACES, TRASH } });
 })();
