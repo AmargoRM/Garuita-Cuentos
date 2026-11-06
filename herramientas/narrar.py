@@ -22,6 +22,8 @@ from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Las grabaciones de WhatsApp vienen saturadas y con ruido: el modelo copia eso y suena raro.
 LIMPIAR_REFERENCIA = "silenceremove=start_periods=1:start_threshold=-40dB,highpass=f=70,afftdn=nf=-30,loudnorm=I=-20:TP=-3"
+# "brillo": más agudos y menos graves (voz más clara y alegre; la aprobó Amargo para la voz femenina).
+BRILLO = "highshelf=f=3500:g=4,equalizer=f=250:t=q:w=1:g=-2,alimiter=limit=0.9"
 # Quita el silencio del principio y del final de cada audio narrado.
 RECORTAR = "silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse"
 
@@ -49,7 +51,8 @@ def main():
     p.add_argument("--ritmo", type=float, default=0.5)
     p.add_argument("--salida", default=None)
     p.add_argument("--voces", default=None,
-                   help='JSON con una voz por personaje, ej. {"tortuga": "ruta/voz-tula.ogg"}. '
+                   help='JSON con una voz por personaje, ej. {"tortuga": "ruta/voz-tula.ogg"} o '
+                        '{"tortuga": {"archivo": "ruta.ogg", "expresividad": 0.8, "velocidad": 1.15, "brillo": true}}. '
                         'Cada "dice" de ese personaje sale como escena-NN-<id>.wav con su voz.')
     a = p.parse_args()
 
@@ -73,7 +76,15 @@ def main():
     voces = {}
     if a.voces:
         with open(a.voces, encoding="utf-8") as f:
-            voces = {re.sub(r"[^a-z0-9_-]", "", k.lower()): v for k, v in json.load(f).items()}
+            for k, v in json.load(f).items():
+                v = v if isinstance(v, dict) else {"archivo": v}
+                if not os.path.isabs(v["archivo"]):
+                    v["archivo"] = os.path.join(os.path.dirname(os.path.abspath(a.voces)), v["archivo"])
+                voces[re.sub(r"[^a-z0-9_-]", "", k.lower())] = v
+    ajustes = {"narrador": {"expresividad": a.expresividad, "velocidad": 1.0, "brillo": False}}
+    for pid, v in voces.items():
+        ajustes[pid] = {"expresividad": float(v.get("expresividad", a.expresividad)),
+                        "velocidad": float(v.get("velocidad", 1.0)), "brillo": bool(v.get("brillo", False))}
     # Diálogos: (archivo, texto, personaje) para cada "dice" de un personaje con voz propia.
     for i, e in enumerate(cuento.get("escenas", []), 1):
         for c in e.get("personajes", []) or []:
@@ -86,8 +97,8 @@ def main():
     modelo = ChatterboxMultilingualTTS.from_pretrained(device=dispositivo)
     # Prepara cada voz una sola vez y la guarda para cambiar rápido entre narrador y personajes.
     condiciones = {}
-    for pid, ruta in [("narrador", None)] + sorted(voces.items()):
-        modelo.prepare_conditionals(referencia if ruta is None else limpiar(ruta, pid), exaggeration=a.expresividad)
+    for pid, v in [("narrador", None)] + sorted(voces.items()):
+        modelo.prepare_conditionals(referencia if v is None else limpiar(v["archivo"], pid), exaggeration=ajustes[pid]["expresividad"])
         condiciones[pid] = modelo.conds
     pausa = np.zeros(int(modelo.sr * 0.35), dtype=np.float32)
 
@@ -100,12 +111,17 @@ def main():
         modelo.conds = condiciones[quien]
         partes = []
         for i, t in enumerate(trozos(texto)):
-            wav = modelo.generate(t, language_id="es", exaggeration=a.expresividad, cfg_weight=a.ritmo)
+            wav = modelo.generate(t, language_id="es", exaggeration=ajustes[quien]["expresividad"], cfg_weight=a.ritmo)
             if i:
                 partes.append(pausa)
             partes.append(wav.squeeze(0).numpy().astype(np.float32))
         sf.write(destino + ".tmp.wav", np.concatenate(partes), modelo.sr)
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", destino + ".tmp.wav", "-af", RECORTAR, destino + ".rec.wav"], check=True)
+        filtro = RECORTAR
+        if ajustes[quien]["velocidad"] != 1.0:
+            filtro += f",atempo={ajustes[quien]['velocidad']:.3f}"
+        if ajustes[quien]["brillo"]:
+            filtro += "," + BRILLO
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", destino + ".tmp.wav", "-af", filtro, destino + ".rec.wav"], check=True)
         os.remove(destino + ".tmp.wav")
         os.replace(destino + ".rec.wav", destino)
     print(f"Listo: {os.path.relpath(carpeta, RAIZ)}")

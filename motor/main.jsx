@@ -39,6 +39,11 @@ function anotarPlan(plan, narracion) {
       const archivo = s.kind === 'title' ? 'titulo.wav' : `escena-${String(s.src + 1).padStart(2, '0')}.wav`;
       lista.push({ archivo: `voz/${nombre}/${archivo}`, inicio: Math.round((s.start + s.narr[0]) * 1000) / 1000 });
     });
+    // Diálogos con la voz de cada personaje, en el momento en que aparece su globito.
+    plan.scenes.forEach((s) => (s.dialogos || []).forEach((d) => {
+      const archivo = `escena-${String(s.src + 1).padStart(2, '0')}-${d.id}.wav`;
+      lista.push({ archivo: `voz/${nombre}/${archivo}`, inicio: Math.round((s.start + d.t) * 1000) / 1000 });
+    }));
   }
   window.__garuitaNarracion = lista;
   window.__garuitaPlan = plan;

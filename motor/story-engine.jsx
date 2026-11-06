@@ -612,7 +612,8 @@ function memberPose(m, u, T, sc) {
 
 // ── Planning ─────────────────────────────────────────────────────────────
 // nd = segundos de la narración grabada para esta escena (0 si no hay audio).
-function planScene(raw, idx, fmt, age, nd = 0) {
+// dd = { id: segundos } de los diálogos grabados con la voz de cada personaje.
+function planScene(raw, idx, fmt, age, nd = 0, dd = {}) {
   const baby = age !== 'ninos', pace = baby ? 1.12 : 1;
   const halfW = fmt.W / 2 / fmt.s;
   const cast = raw.personajes || [];
@@ -673,10 +674,17 @@ function planScene(raw, idx, fmt, age, nd = 0) {
     oneShot = Math.max(oneShot, contact + 2.4);
   });
   let st = Math.max(entDone, sc.doorOpen ? sc.doorOpen + 0.7 : 0) + 0.3;
+  // Si algún personaje tiene su diálogo grabado, habla después del narrador para que no se pisen.
+  sc.dialogos = [];
+  if (nd > 0 && members.some((m) => m.dice && dd[m.id] > 0)) st = Math.max(st, 0.4 + nd + 0.3);
   members.forEach((m) => {
     if (!m.dice) return;
-    const len = clamp(1.4 + words(m.dice).length * 0.34, 1.9, 4.5) * pace;
-    m.speak = [st, st + len]; ev(st, 'voz', { id: m.id, n: words(m.dice).length }); st += len + 0.25;
+    const ad = Number(dd[m.id]) || 0;
+    const len = ad > 0 ? ad + 0.15 : clamp(1.4 + words(m.dice).length * 0.34, 1.9, 4.5) * pace;
+    m.speak = [st, st + len];
+    if (ad > 0) sc.dialogos.push({ id: m.id, t: st });
+    else ev(st, 'voz', { id: m.id, n: words(m.dice).length });
+    st += len + 0.25;
   });
   const capW = words(sc.texto).length;
   sc.cap = [0.4, 0.4 + capW * (baby ? 0.42 : 0.34)];
@@ -734,7 +742,8 @@ function planStory(story, fmt, age, narr) {
   let t = 0;
   const scenes = list.map((raw, i) => {
     const nd = !narr ? 0 : raw._title ? Number(narr.titulo) || 0 : raw._fin ? 0 : Number((narr.escenas || [])[raw.src]) || 0;
-    const sc = planScene(raw, i, fmt, age, nd);
+    const dd = !narr || raw._title || raw._fin ? {} : ((narr.dialogos || [])[raw.src] || {});
+    const sc = planScene(raw, i, fmt, age, nd, dd);
     sc.start = t; t += sc.dur;
     sc.label = sc.kind === 'title' ? 'Título' : sc.kind === 'fin' ? 'Fin' : `${sc.src + 1} · ${PLACES[sc.lugar]}`;
     return sc;
@@ -1224,7 +1233,7 @@ function StoryPlayer(props) {
   const age = props.age || 'bebes';
   const plan = React.useMemo(() => planStory(props.story, fmt, age, props.narracion), [props.story, fmt, age, props.narracion]);
   React.useEffect(() => {
-    if (props.onPlan) props.onPlan({ total: plan.total, scenes: plan.scenes.map((s) => ({ src: s.src, dur: s.dur, kind: s.kind, start: s.start, narr: s.narr || null })) });
+    if (props.onPlan) props.onPlan({ total: plan.total, scenes: plan.scenes.map((s) => ({ src: s.src, dur: s.dur, kind: s.kind, start: s.start, narr: s.narr || null, dialogos: s.dialogos || [] })) });
   }, [plan]);
   const scenesJSON = React.useMemo(() => JSON.stringify(plan.scenes.map((s) => ({ name: s.label, dur: s.dur }))), [plan]);
   const opts = { sound: props.sound !== false, music: props.music !== false, captions: props.captions !== false };

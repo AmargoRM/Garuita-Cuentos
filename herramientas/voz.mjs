@@ -47,11 +47,24 @@ function importar(nombre) {
 }
 
 const resultado = { titulo: importar('titulo'), escenas: escenas.map((_, i) => importar(`escena-${String(i + 1).padStart(2, '0')}`)) };
+// Diálogos con voz propia (narrar.py --voces): escena-NN-<id>.wav -> { id: segundos } por escena.
+resultado.dialogos = escenas.map((e, i) => {
+  const d = {};
+  (Array.isArray(e.personajes) ? e.personajes : []).forEach((c) => {
+    const id = String((c && c.id) || '').toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    if (!id || !String((c && c.dice) || '').trim()) return;
+    const s = importar(`escena-${String(i + 1).padStart(2, '0')}-${id}`);
+    if (s != null) d[id] = s;
+  });
+  return d;
+});
+const conVoz = resultado.dialogos.reduce((n, d) => n + Object.keys(d).length, 0);
 const faltan = resultado.escenas.map((d, i) => (d == null && String(escenas[i].texto || '').trim() ? i + 1 : null)).filter(Boolean);
 fs.writeFileSync(path.join(destino, 'duraciones.json'), JSON.stringify(resultado, null, 2) + '\n');
 
-const total = (resultado.titulo || 0) + resultado.escenas.reduce((s, d) => s + (d || 0), 0);
-console.log(`Narración de "${cuento}": ${resultado.escenas.filter((d) => d != null).length} de ${escenas.length} escenas, ${total.toFixed(1)} s de voz.`);
+const total = (resultado.titulo || 0) + resultado.escenas.reduce((s, d) => s + (d || 0), 0)
+  + resultado.dialogos.reduce((s, d) => s + Object.values(d).reduce((a, b) => a + b, 0), 0);
+console.log(`Narración de "${cuento}": ${resultado.escenas.filter((d) => d != null).length} de ${escenas.length} escenas, ${conVoz} diálogos, ${total.toFixed(1)} s de voz.`);
 console.log(`  -> ${path.relative(raiz, destino)}/duraciones.json`);
 if (resultado.titulo == null) console.log('  Aviso: falta titulo.wav (el título queda sin voz).');
 if (faltan.length) console.log(`  Aviso: faltan audios de las escenas ${faltan.join(', ')} (quedan sin voz).`);
