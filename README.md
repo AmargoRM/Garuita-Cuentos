@@ -45,13 +45,40 @@ Sacar 6 fotos repartidas a lo largo del cuento, para revisar rápido:
 npm run captura -- --cuento ejemplo --formato horizontal --fotos 6
 ```
 
-Grabar el video completo (todavía sin sonido; el sonido llega en la Fase 3):
+Grabar el video completo (sale con voz si el cuento tiene narración importada, ver abajo):
 
 ```bash
 npm run captura -- --cuento ejemplo --formato vertical --video
 ```
 
 Los resultados quedan en `salida/`. Grabar tarda unas 3 veces la duración del cuento.
+
+## Voz del narrador (Chatterbox en Google Colab)
+
+La voz se genera fuera de esta computadora, en Google Colab (gratis, con GPU), con el
+cuaderno `voz/garuita-voz-chatterbox.ipynb`. Chatterbox clona una voz a partir de una
+grabación de 10 a 15 segundos (licencia MIT, sirve para YouTube con ingresos).
+
+1. Abrir el cuaderno en Colab, elegir GPU T4 y correr los pasos 1, 2 y 3 (subir la voz).
+2. Paso 5: subir el cuento (`cuentos/NOMBRE.json`). Descarga `NOMBRE-voz.zip`
+   con `titulo.wav`, `escena-01.wav`, `escena-02.wav`...
+3. Importarlo al motor:
+
+```bash
+npm run voz -- --cuento NOMBRE --zip NOMBRE-voz.zip
+```
+
+Esto deja los audios en `voz/NOMBRE/` con `duraciones.json`. Desde ahí, cada escena dura
+lo que dura su narración (nunca menos) y `npm run captura -- --video` sale con la voz.
+Para grabar sin voz: `--sin-voz`.
+
+Sin Colab (por ejemplo en la nube de Claude, si permite bajar de huggingface.co):
+
+```bash
+pip install chatterbox-tts==0.1.7 && pip uninstall -y torchvision
+python herramientas/narrar.py --cuento NOMBRE --voz ruta/mi_voz.ogg
+npm run voz -- --cuento NOMBRE --carpeta salida/narracion/NOMBRE
+``` Los audios no se suben a GitHub (el repositorio es público).
 
 ## Formato de un cuento
 

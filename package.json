@@ -6,7 +6,8 @@
   "scripts": {
     "build": "esbuild motor/main.jsx --bundle --minify --outfile=publico/motor.js --loader:.woff2=file --loader:.woff=file --asset-names=fuentes/[name] --jsx-factory=React.createElement --jsx-fragment=React.Fragment",
     "servir": "node herramientas/servidor.mjs",
-    "captura": "node herramientas/captura.mjs"
+    "captura": "node herramientas/captura.mjs",
+    "voz": "node herramientas/voz.mjs"
   },
   "dependencies": {
     "@fontsource/fredoka": "5.2.8",
