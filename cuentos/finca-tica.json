@@ -86,33 +86,115 @@
       {
        "id": "tortuga",
        "x": -0.64,
-       "accion": "bailar"
+       "accion": "bailar",
+       "acciones": [
+        [
+         "f1@0.40",
+         "saltar"
+        ],
+        [
+         "f1@0.50",
+         "bailar"
+        ]
+       ]
       },
       {
        "id": "mono",
        "x": -0.32,
-       "accion": "bailar"
+       "accion": "bailar",
+       "acciones": [
+        [
+         "f1@0.52",
+         "saltar"
+        ],
+        [
+         "f1@0.62",
+         "bailar"
+        ]
+       ]
       },
       {
        "id": "conejo",
        "x": 0,
-       "accion": "bailar"
+       "accion": "bailar",
+       "acciones": [
+        [
+         "f1@0.64",
+         "saltar"
+        ],
+        [
+         "f1@0.74",
+         "bailar"
+        ]
+       ]
       },
       {
        "id": "gallina",
        "x": 0.32,
-       "accion": "bailar"
+       "accion": "bailar",
+       "acciones": [
+        [
+         "f1@0.76",
+         "saltar"
+        ],
+        [
+         "f1@0.86",
+         "bailar"
+        ]
+       ]
       },
       {
        "id": "tigre",
        "x": 0.64,
-       "accion": "bailar"
+       "accion": "bailar",
+       "acciones": [
+        [
+         "f1@0.88",
+         "saltar"
+        ],
+        [
+         "f1@0.98",
+         "bailar"
+        ]
+       ]
       }
      ],
      "notas": true,
      "frases": [
-      "Cinco amiguitos, uno, dos, tres.",
+      "Cinco amiguitos: uno, dos, tres, cuatro, cinco.",
       "Cinco amiguitos, ¡hola otra vez!"
+     ],
+     "numeros": [
+      [
+       "f1@0.42",
+       "1",
+       -565,
+       2.6
+      ],
+      [
+       "f1@0.54",
+       "2",
+       -283,
+       2.6
+      ],
+      [
+       "f1@0.66",
+       "3",
+       0,
+       2.6
+      ],
+      [
+       "f1@0.78",
+       "4",
+       283,
+       2.6
+      ],
+      [
+       "f1@0.90",
+       "5",
+       565,
+       2.6
+      ]
      ]
     },
     {
@@ -129,7 +211,7 @@
       }
      ],
      "frases": [
-      "¡Vamos a jugar! ¡Vamos!"
+      "¡Empieza el día! ¡Vamos!"
      ]
     }
    ]
@@ -216,7 +298,7 @@
        "acciones": [
         [
          "f4",
-         "oler"
+         "olerOlla"
         ]
        ]
       }
@@ -248,7 +330,13 @@
        "x": 0,
        "accion": "comer",
        "ropa": "delantal",
-       "sentada": true
+       "sentada": true,
+       "acciones": [
+        [
+         "f4",
+         "comerTortilla"
+        ]
+       ]
       }
      ],
      "frases": [
@@ -307,6 +395,1596 @@
        "en": "f3+",
        "vol": 0.28
       }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "carreta",
+   "nombre": "La carreta de colores",
+   "tema": "colores",
+   "escenas": [
+    {
+     "seg": 25,
+     "lugar": "finca",
+     "carreta": {
+      "x": 0.35
+     },
+     "sonidos": [
+      {
+       "id": "pajaros",
+       "en": 0.3,
+       "vol": 0.25
+      }
+     ],
+     "camara": [
+      {
+       "z": 1.15,
+       "y": 80,
+       "x": 0
+      },
+      {
+       "z": 1.2,
+       "y": 80,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "conejo",
+       "x": -0.45,
+       "accion": "saltar",
+       "acciones": [
+        [
+         "f3",
+         "mirarAlla"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Chepe salta. Brinca, brinca, brinca.",
+      "Mira, Chepe.",
+      "¡Una carreta! Una carreta bonita."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "finca",
+     "carreta": {
+      "x": 0.2
+     },
+     "camara": [
+      {
+       "z": 1.7,
+       "y": 170,
+       "x": 40
+      },
+      {
+       "z": 1.85,
+       "y": 175,
+       "x": 30
+      }
+     ],
+     "personajes": [
+      {
+       "id": "conejo",
+       "x": -0.36,
+       "accion": "quieto",
+       "acciones": [
+        [
+         "f4",
+         "tocar"
+        ]
+       ]
+      }
+     ],
+     "muestras": [
+      {
+       "en": "f3@0.5",
+       "objeto": "fresa",
+       "x": -470,
+       "y": -470,
+       "dura": 6
+      }
+     ],
+     "frases": [
+      "Mira la rueda. Rueda roja.",
+      "Rojo.",
+      "Rojo, como una fresa.",
+      "Chepe toca la rueda roja. Rojo."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "finca",
+     "carreta": {
+      "x": 0.3
+     },
+     "camara": [
+      {
+       "z": 1.7,
+       "y": 220,
+       "x": 40
+      },
+      {
+       "z": 1.85,
+       "y": 225,
+       "x": 30
+      }
+     ],
+     "personajes": [
+      {
+       "id": "conejo",
+       "x": -0.36,
+       "accion": "mirarAlla",
+       "acciones": [
+        [
+         "f4",
+         "oler"
+        ]
+       ]
+      }
+     ],
+     "muestras": [
+      {
+       "en": "f3@0.5",
+       "objeto": "sol",
+       "x": -480,
+       "y": -480,
+       "dura": 6
+      }
+     ],
+     "frases": [
+      "Mira aquí. Una flor amarilla.",
+      "Amarillo.",
+      "Amarillo, como el sol.",
+      {
+       "texto": "Chepe huele la flor. Ffff. Amarillo.",
+       "decir": "Chepe huele la flor. Ffffff. Amarillo."
+      }
+     ]
+    },
+    {
+     "seg": 45,
+     "lugar": "finca",
+     "carreta": {
+      "x": 0.1,
+      "hasta_x": 0.5,
+      "en": "f4"
+     },
+     "camara": [
+      {
+       "z": 1.3,
+       "y": 90,
+       "x": 60
+      },
+      {
+       "z": 1.1,
+       "y": 40,
+       "x": 180
+      }
+     ],
+     "personajes": [
+      {
+       "id": "conejo",
+       "x": 0,
+       "accion": "montado",
+       "carreta": true,
+       "acciones": []
+      }
+     ],
+     "muestras": [
+      {
+       "en": "f3@0.05",
+       "objeto": "rojo",
+       "x": -380,
+       "y": -560,
+       "dura": 3.5
+      },
+      {
+       "en": "f3@0.4",
+       "objeto": "amarillo",
+       "x": 0,
+       "y": -600,
+       "dura": 3.2
+      },
+      {
+       "en": "f3@0.75",
+       "objeto": "azul",
+       "x": 380,
+       "y": -560,
+       "dura": 3
+      }
+     ],
+     "frases": [
+      "Y una estrella azul.",
+      "Azul.",
+      "Rojo, amarillo, azul.",
+      "Chepe pasea en la carreta. ¡Qué carreta tan bonita!"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tula",
+   "nombre": "Tula y la garúa",
+   "tema": "clima",
+   "escenas": [
+    {
+     "seg": 30,
+     "lugar": "garua",
+     "camara": [
+      {
+       "z": 1.25,
+       "y": 90,
+       "x": 0
+      },
+      {
+       "z": 1.3,
+       "y": 90,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": -0.55,
+       "accion": "caminar",
+       "hasta_x": 0.1
+      }
+     ],
+     "frases": [
+      "Tula camina despacito. Pasito, pasito.",
+      "Pasito, pasito.",
+      "Tula no tiene prisa."
+     ]
+    },
+    {
+     "seg": 45,
+     "lugar": "garua",
+     "lluvia": true,
+     "gotas": true,
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.22,
+      "largo": 23
+     },
+     "camara": [
+      {
+       "z": 1.6,
+       "y": 150,
+       "x": 0
+      },
+      {
+       "z": 1.75,
+       "y": 150,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": 0,
+       "accion": "quieto",
+       "acciones": [
+        [
+         "f4",
+         "feliz"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Cae la garúa. Plin, plin, plin.",
+      "¿Cómo hace la lluvia? Plin, plin.",
+      "Gotitas en la espalda de Tula. Plin."
+     ]
+    },
+    {
+     "seg": 35,
+     "lugar": "garua",
+     "lluvia": true,
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.22,
+      "largo": 23
+     },
+     "camara": [
+      {
+       "z": 1.3,
+       "y": 140,
+       "x": 0
+      },
+      {
+       "z": 1.4,
+       "y": 140,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": 0,
+       "accion": "mirar",
+       "acciones": [
+        [
+         "f2",
+         "hoja"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Tula busca una hoja grande.",
+      "Una sombrilla verde. Verde y grande.",
+      "Qué tuanis, Tula."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "garua",
+     "charco": {
+      "x": 0
+     },
+     "camara": [
+      {
+       "z": 1.35,
+       "y": 110,
+       "x": 0
+      },
+      {
+       "z": 1.45,
+       "y": 110,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": 0,
+       "accion": "quieto",
+       "acciones": [
+        [
+         "f2",
+         "charco"
+        ],
+        [
+         "f4",
+         "feliz"
+        ]
+       ]
+      }
+     ],
+     "chaps": [
+      "f2",
+      "f2@0.6",
+      "f3@0.7",
+      "f3@0.95"
+     ],
+     "sonidos": [
+      {
+       "id": "charco",
+       "en": "f2",
+       "vol": 0.35
+      },
+      {
+       "id": "charco",
+       "en": "f2@0.6",
+       "vol": 0.35
+      },
+      {
+       "id": "charco",
+       "en": "f3@0.7",
+       "vol": 0.35
+      },
+      {
+       "id": "charco",
+       "en": "f3@0.95",
+       "vol": 0.35
+      }
+     ],
+     "frases": [
+      "Mira, un charquito.",
+      "Chap, chap.",
+      "¿Cómo hace el charquito? Chap, chap.",
+      "Tula sonríe."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "chito",
+   "nombre": "Chito y la piña",
+   "tema": "frutas",
+   "escenas": [
+    {
+     "seg": 30,
+     "lugar": "pinal",
+     "sonidos": [
+      {
+       "id": "pajaros",
+       "en": 0.3,
+       "vol": 0.25
+      }
+     ],
+     "camara": [
+      {
+       "z": 1.3,
+       "y": 110,
+       "x": 0
+      },
+      {
+       "z": 1.35,
+       "y": 110,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "mono",
+       "x": 0,
+       "accion": "mirar",
+       "acciones": [
+        [
+         "f3",
+         "mirarAqui"
+        ],
+        [
+         "f4",
+         "mirarAlla"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Chito busca algo.",
+      "¿Qué será? ¿Qué será?",
+      "Chito mira aquí.",
+      "Chito mira allá."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "pinal",
+     "camara": [
+      {
+       "z": 1.4,
+       "y": 170,
+       "x": 0
+      },
+      {
+       "z": 1.5,
+       "y": 170,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "mono",
+       "x": 0,
+       "accion": "levantar",
+       "acciones": []
+      }
+     ],
+     "frases": [
+      "¡Una piña!",
+      "Piña.",
+      "Chito está feliz. Uh, uh, ah, ah.",
+      "¿Cómo dice Chito? Uh, uh, ah, ah."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "pinal",
+     "camara": [
+      {
+       "z": 1.6,
+       "y": 160,
+       "x": 0
+      },
+      {
+       "z": 1.75,
+       "y": 160,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "mono",
+       "x": 0,
+       "accion": "sombreroPina",
+       "acciones": [
+        [
+         "f2",
+         "sombreroQuieto"
+        ],
+        [
+         "f3",
+         "sombreroPina"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "¡Ji, ji, ji! Un sombrero de piña.",
+      "Chito con sombrero.",
+      "Qué chistoso. ¡Qué tuanis!"
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "pinal",
+     "camara": [
+      {
+       "z": 1.5,
+       "y": 150,
+       "x": 0
+      },
+      {
+       "z": 1.6,
+       "y": 150,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "mono",
+       "x": 0,
+       "accion": "banano",
+       "sombrero": true,
+       "acciones": [
+        [
+         "f3",
+         "comerBanano"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Y aquí, un banano. Banano amarillo.",
+      "Chito lo pela.",
+      {
+       "texto": "Ñam, ñam. Qué rico, Chito.",
+       "decir": "Ñaam, ñaam. Qué rico, Chito."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bruno",
+   "nombre": "Bruno cuenta café",
+   "tema": "contar",
+   "escenas": [
+    {
+     "seg": 30,
+     "lugar": "cafetal",
+     "matas": [
+      0.62
+     ],
+     "sonidos": [
+      {
+       "id": "pajaros",
+       "en": 0.3,
+       "vol": 0.25
+      }
+     ],
+     "camara": [
+      {
+       "z": 1.2,
+       "y": 100,
+       "x": 0
+      },
+      {
+       "z": 1.3,
+       "y": 100,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tigre",
+       "x": -0.55,
+       "accion": "caminar",
+       "hasta_x": -0.05,
+       "acciones": [
+        [
+         "f2",
+         "cargar"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Aquí viene Bruno.",
+      "Bruno lleva una canasta. Una canasta vacía."
+     ]
+    },
+    {
+     "seg": 35,
+     "lugar": "cafetal",
+     "matas": [
+      0.25
+     ],
+     "camara": [
+      {
+       "z": 1.5,
+       "y": 190,
+       "x": 120
+      },
+      {
+       "z": 1.65,
+       "y": 190,
+       "x": 140
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tigre",
+       "x": 0,
+       "accion": "cargar",
+       "acciones": [
+        [
+         "f2",
+         "tocarGrano"
+        ],
+        [
+         "f3",
+         "cargar"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Mira, granitos rojos.",
+      "Bruno toca uno. Suave, suave.",
+      "Bruno es muy suave."
+     ]
+    },
+    {
+     "seg": 50,
+     "lugar": "cafetal",
+     "matas": [
+      0.3
+     ],
+     "camara": [
+      {
+       "z": 1.35,
+       "y": 170,
+       "x": 100
+      },
+      {
+       "z": 1.4,
+       "y": 170,
+       "x": 100
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tigre",
+       "x": 0,
+       "accion": "poner"
+      }
+     ],
+     "numeros": [
+      [
+       "f1",
+       "1",
+       0
+      ],
+      [
+       "f2",
+       "2",
+       0
+      ],
+      [
+       "f3",
+       "3",
+       0
+      ],
+      [
+       "f5@0.35",
+       "1",
+       -260,
+       1.6
+      ],
+      [
+       "f5@0.6",
+       "2",
+       0,
+       1.6
+      ],
+      [
+       "f5@0.85",
+       "3",
+       260,
+       1.8
+      ]
+     ],
+     "frases": [
+      "Uno.",
+      "Dos.",
+      "Tres.",
+      "¡Tres granitos!",
+      "Contamos otra vez: uno, dos, tres."
+     ]
+    },
+    {
+     "seg": 35,
+     "lugar": "cafetal",
+     "matas": [
+      0.62
+     ],
+     "camara": [
+      {
+       "z": 1.55,
+       "y": 180,
+       "x": 0
+      },
+      {
+       "z": 1.7,
+       "y": 180,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tigre",
+       "x": 0,
+       "accion": "abrazar"
+      }
+     ],
+     "sonidos": [
+      {
+       "id": "ronroneo",
+       "en": "f1@0.6",
+       "vol": 0.22
+      },
+      {
+       "id": "ronroneo",
+       "en": "f2@0.6",
+       "vol": 0.22
+      }
+     ],
+     "frases": [
+      "Bruno está feliz. Rrrr, rrrr.",
+      "¿Cómo hace Bruno? Rrrr.",
+      "Muy bien, Bruno."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hamaca",
+   "nombre": "Todos en la hamaca",
+   "tema": "compartir",
+   "escenas": [
+    {
+     "seg": 30,
+     "lugar": "hamaca",
+     "hamaca": true,
+     "sonidos": [
+      {
+       "id": "pajaros",
+       "en": 0.3,
+       "vol": 0.25
+      }
+     ],
+     "camara": [
+      {
+       "z": 1.25,
+       "y": 200,
+       "x": 0
+      },
+      {
+       "z": 1.3,
+       "y": 200,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": 0,
+       "accion": "quieto",
+       "aparece": "f2",
+       "hamaca": true,
+       "acciones": [
+        [
+         "f2+",
+         "mecer"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Una hamaca.",
+      "Tula se sube. Mece, mece.",
+      "Mece, mece."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "hamaca",
+     "hamaca": true,
+     "camara": [
+      {
+       "z": 1.2,
+       "y": 200,
+       "x": 0
+      },
+      {
+       "z": 1.2,
+       "y": 200,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": -0.15,
+       "accion": "mecer",
+       "hamaca": true,
+       "hasta_x": -0.2
+      },
+      {
+       "id": "mono",
+       "x": -0.76,
+       "accion": "saludar",
+       "aparece": "f1"
+      },
+      {
+       "id": "conejo",
+       "x": 0.76,
+       "accion": "saludar",
+       "aparece": "f1@0.5"
+      }
+     ],
+     "frases": [
+      "Llegan Chito y Chepe.",
+      "¿Hay campo?",
+      "¡Sí hay campo! Vengan, vengan."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "hamaca",
+     "hamaca": true,
+     "camara": [
+      {
+       "z": 1.15,
+       "y": 190,
+       "x": 0
+      },
+      {
+       "z": 1.1,
+       "y": 190,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "mono",
+       "x": -0.36,
+       "accion": "mecer",
+       "hamaca": true
+      },
+      {
+       "id": "tortuga",
+       "x": -0.12,
+       "accion": "mecer",
+       "hamaca": true
+      },
+      {
+       "id": "conejo",
+       "x": 0.12,
+       "accion": "mecer",
+       "hamaca": true
+      },
+      {
+       "id": "gallina",
+       "x": 0.36,
+       "accion": "quieto",
+       "aparece": "f1",
+       "hamaca": true,
+       "acciones": [
+        [
+         "f1+",
+         "mecer"
+        ]
+       ]
+      },
+      {
+       "id": "tigre",
+       "x": 0.6,
+       "accion": "quieto",
+       "aparece": "f1@0.6",
+       "hamaca": true,
+       "acciones": [
+        [
+         "f2",
+         "mecer"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Clota también. Bruno también.",
+      "Los cinco juntos.",
+      "¡Todos juntos!"
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "hamaca",
+     "hamaca": true,
+     "musica": "cuna",
+     "camara": [
+      {
+       "z": 1.1,
+       "y": 190,
+       "x": 0
+      },
+      {
+       "z": 1.25,
+       "y": 200,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "mono",
+       "x": -0.48,
+       "accion": "mecer",
+       "hamaca": true
+      },
+      {
+       "id": "tortuga",
+       "x": -0.24,
+       "accion": "mecer",
+       "hamaca": true
+      },
+      {
+       "id": "conejo",
+       "x": 0,
+       "accion": "mecer",
+       "hamaca": true
+      },
+      {
+       "id": "gallina",
+       "x": 0.24,
+       "accion": "mecer",
+       "hamaca": true
+      },
+      {
+       "id": "tigre",
+       "x": 0.48,
+       "accion": "mecer",
+       "hamaca": true
+      }
+     ],
+     "frases": [
+      "Compartir es bonito.",
+      "Mece, mece, mece.",
+      "Pura vida, amiguitos."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "noches",
+   "nombre": "Buenas noches",
+   "tema": "dormir",
+   "escenas": [
+    {
+     "seg": 30,
+     "lugar": "atardecer",
+     "camara": [
+      {
+       "z": 1.0,
+       "y": 0,
+       "x": 0
+      },
+      {
+       "z": 1.05,
+       "y": 0,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": -0.6,
+       "accion": "quieto",
+       "k": 0.6,
+       "acciones": [
+        [
+         "f2",
+         "adios"
+        ]
+       ]
+      },
+      {
+       "id": "mono",
+       "x": -0.3,
+       "accion": "quieto",
+       "k": 0.6,
+       "acciones": [
+        [
+         "f2",
+         "adios"
+        ]
+       ]
+      },
+      {
+       "id": "conejo",
+       "x": 0,
+       "accion": "quieto",
+       "k": 0.6,
+       "acciones": [
+        [
+         "f2",
+         "adios"
+        ]
+       ]
+      },
+      {
+       "id": "gallina",
+       "x": 0.3,
+       "accion": "quieto",
+       "k": 0.6,
+       "acciones": [
+        [
+         "f2",
+         "adios"
+        ]
+       ]
+      },
+      {
+       "id": "tigre",
+       "x": 0.6,
+       "accion": "quieto",
+       "k": 0.6,
+       "acciones": [
+        [
+         "f2",
+         "adios"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Se va el sol.",
+      "Chao, sol. Chao.",
+      "Hasta mañana, sol."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "noche",
+     "luciernagas": true,
+     "fondo_sonido": {
+      "id": "grillos",
+      "vol": 0.14,
+      "largo": 19
+     },
+     "camara": [
+      {
+       "z": 1.0,
+       "y": 40,
+       "x": 0
+      },
+      {
+       "z": 1.08,
+       "y": 40,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": -0.6,
+       "accion": "quieto",
+       "k": 0.6,
+       "acciones": [
+        [
+         "f2",
+         "mirar"
+        ]
+       ]
+      },
+      {
+       "id": "mono",
+       "x": -0.3,
+       "accion": "quieto",
+       "k": 0.6,
+       "acciones": [
+        [
+         "f2",
+         "mirar"
+        ]
+       ]
+      },
+      {
+       "id": "conejo",
+       "x": 0,
+       "accion": "quieto",
+       "k": 0.6,
+       "acciones": [
+        [
+         "f2",
+         "mirar"
+        ]
+       ]
+      },
+      {
+       "id": "gallina",
+       "x": 0.3,
+       "accion": "quieto",
+       "k": 0.6,
+       "acciones": [
+        [
+         "f2",
+         "mirar"
+        ]
+       ]
+      },
+      {
+       "id": "tigre",
+       "x": 0.6,
+       "accion": "quieto",
+       "k": 0.6,
+       "acciones": [
+        [
+         "f2",
+         "mirar"
+        ]
+       ]
+      }
+     ],
+     "frases": [
+      "Mira, lucecitas.",
+      "Brillan, brillan.",
+      "Lucecitas en la noche."
+     ]
+    },
+    {
+     "seg": 40,
+     "lugar": "noche",
+     "fondo_sonido": {
+      "id": "grillos",
+      "vol": 0.14,
+      "largo": 19
+     },
+     "camara": [
+      {
+       "z": 1.15,
+       "y": 80,
+       "x": 0
+      },
+      {
+       "z": 1.2,
+       "y": 80,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": -0.6,
+       "accion": "quieto",
+       "acciones": [
+        [
+         "f2",
+         "bostezar"
+        ]
+       ]
+      },
+      {
+       "id": "mono",
+       "x": -0.3,
+       "accion": "quieto",
+       "acciones": [
+        [
+         "f3",
+         "bostezar"
+        ]
+       ]
+      },
+      {
+       "id": "conejo",
+       "x": 0,
+       "accion": "quieto",
+       "acciones": [
+        [
+         "f3",
+         "bostezar"
+        ]
+       ]
+      },
+      {
+       "id": "gallina",
+       "x": 0.3,
+       "accion": "quieto",
+       "acciones": [
+        [
+         "f3",
+         "bostezar"
+        ]
+       ]
+      },
+      {
+       "id": "tigre",
+       "x": 0.6,
+       "accion": "bostezar"
+      }
+     ],
+     "frases": [
+      {
+       "texto": "Bruno bosteza. Aaaah.",
+       "decir": "Bruno bosteza. Aaaaah."
+      },
+      {
+       "texto": "Tula también. Aaaah.",
+       "decir": "Tula también. Aaaaah."
+      },
+      "Todos tienen sueño."
+     ]
+    },
+    {
+     "seg": 45,
+     "lugar": "noche",
+     "cobija": true,
+     "fondo_sonido": {
+      "id": "grillos",
+      "vol": 0.14,
+      "largo": 19
+     },
+     "camara": [
+      {
+       "z": 1.2,
+       "y": 90,
+       "x": 0
+      },
+      {
+       "z": 1.35,
+       "y": 110,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": -0.6,
+       "accion": "dormir",
+       "k": 0.72,
+       "y": -15
+      },
+      {
+       "id": "mono",
+       "x": -0.3,
+       "accion": "dormir",
+       "k": 0.72,
+       "y": -15
+      },
+      {
+       "id": "conejo",
+       "x": 0,
+       "accion": "dormir",
+       "k": 0.72,
+       "y": -15
+      },
+      {
+       "id": "gallina",
+       "x": 0.3,
+       "accion": "dormir",
+       "k": 0.72,
+       "y": -15
+      },
+      {
+       "id": "tigre",
+       "x": 0.6,
+       "accion": "dormir",
+       "k": 0.72,
+       "y": -15
+      }
+     ],
+     "frases": [
+      "Buenas noches, Tula. Buenas noches, Chito.",
+      "Buenas noches, Chepe. Buenas noches, Clota.",
+      "Buenas noches, Bruno.",
+      "Buenas noches, finca. Shhh."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "repaso",
+   "nombre": "Repaso",
+   "tema": "repaso",
+   "escenas": [
+    {
+     "seg": 10,
+     "lugar": "cocina",
+     "camara": [
+      {
+       "z": 1.75,
+       "y": 125,
+       "x": 0
+      },
+      {
+       "z": 1.85,
+       "y": 125,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "gallina",
+       "x": 0,
+       "accion": "feliz",
+       "ropa": "delantal"
+      }
+     ],
+     "sonidos": [
+      {
+       "id": "gallina-suave",
+       "en": "f1+",
+       "vol": 0.25
+      }
+     ],
+     "frases": [
+      "Clota dice: cocó, cocó."
+     ]
+    },
+    {
+     "seg": 10,
+     "lugar": "garua",
+     "lluvia": true,
+     "gotas": true,
+     "fondo_sonido": {
+      "id": "garua",
+      "vol": 0.2,
+      "largo": 23
+     },
+     "camara": [
+      {
+       "z": 1.6,
+       "y": 150,
+       "x": 0
+      },
+      {
+       "z": 1.7,
+       "y": 150,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": 0,
+       "accion": "feliz"
+      }
+     ],
+     "frases": [
+      "La garúa dice: plin, plin."
+     ]
+    },
+    {
+     "seg": 10,
+     "lugar": "pinal",
+     "camara": [
+      {
+       "z": 1.6,
+       "y": 160,
+       "x": 0
+      },
+      {
+       "z": 1.7,
+       "y": 160,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "mono",
+       "x": 0,
+       "accion": "sombreroPina"
+      }
+     ],
+     "frases": [
+      "Chito dice: uh, uh, ah, ah."
+     ]
+    },
+    {
+     "seg": 15,
+     "lugar": "cafetal",
+     "matas": [
+      0.62
+     ],
+     "camara": [
+      {
+       "z": 1.35,
+       "y": 170,
+       "x": 0
+      },
+      {
+       "z": 1.4,
+       "y": 170,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tigre",
+       "x": 0,
+       "accion": "abrazar"
+      }
+     ],
+     "sonidos": [
+      {
+       "id": "ronroneo",
+       "en": "f1@0.7",
+       "vol": 0.2
+      }
+     ],
+     "numeros": [
+      [
+       "f2@0.1",
+       "1",
+       -260,
+       1.5
+      ],
+      [
+       "f2@0.45",
+       "2",
+       0,
+       1.5
+      ],
+      [
+       "f2@0.8",
+       "3",
+       260,
+       1.8
+      ]
+     ],
+     "frases": [
+      "Bruno dice: rrrr.",
+      "Uno, dos, tres."
+     ]
+    },
+    {
+     "seg": 15,
+     "lugar": "finca",
+     "carreta": {
+      "x": 0.2
+     },
+     "camara": [
+      {
+       "z": 1.3,
+       "y": 120,
+       "x": 0
+      },
+      {
+       "z": 1.35,
+       "y": 120,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "conejo",
+       "x": -0.45,
+       "accion": "saltar"
+      }
+     ],
+     "muestras": [
+      {
+       "en": "f1@0.05",
+       "objeto": "rojo",
+       "x": -380,
+       "y": -560,
+       "dura": 3.5
+      },
+      {
+       "en": "f1@0.4",
+       "objeto": "amarillo",
+       "x": 0,
+       "y": -600,
+       "dura": 3.2
+      },
+      {
+       "en": "f1@0.75",
+       "objeto": "azul",
+       "x": 380,
+       "y": -560,
+       "dura": 3
+      }
+     ],
+     "frases": [
+      "Rojo, amarillo, azul."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "cierre",
+   "nombre": "Adiós",
+   "tema": "cierre",
+   "escenas": [
+    {
+     "seg": 15,
+     "lugar": "finca",
+     "camara": [
+      {
+       "z": 1.05,
+       "y": 0,
+       "x": 0
+      },
+      {
+       "z": 1.0,
+       "y": 0,
+       "x": 0
+      }
+     ],
+     "personajes": [
+      {
+       "id": "tortuga",
+       "x": -0.6,
+       "accion": "adios"
+      },
+      {
+       "id": "mono",
+       "x": -0.3,
+       "accion": "adios"
+      },
+      {
+       "id": "conejo",
+       "x": 0,
+       "accion": "adios"
+      },
+      {
+       "id": "gallina",
+       "x": 0.3,
+       "accion": "adios"
+      },
+      {
+       "id": "tigre",
+       "x": 0.6,
+       "accion": "adios"
+      }
+     ],
+     "frases": [
+      "Adiós, amiguitos. Adiós.",
+      "Tula, Chito, Chepe, Clota y Bruno."
+     ]
+    },
+    {
+     "seg": 15,
+     "lugar": "noche",
+     "musica": "cuna",
+     "luna": true,
+     "fondo_sonido": {
+      "id": "grillos",
+      "vol": 0.14,
+      "largo": 19
+     },
+     "camara": [
+      {
+       "z": 1.0,
+       "y": -60,
+       "x": 0
+      },
+      {
+       "z": 1.06,
+       "y": -60,
+       "x": 0
+      }
+     ],
+     "frases": [
+      "Cinco amiguitos, a descansar.",
+      "La otra semana, ¡a jugar!"
      ]
     }
    ]

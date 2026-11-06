@@ -16,6 +16,11 @@ Aquí están recortadas (el pedazo más fuerte), con volumen parejo, en `.ogg`.
 | `gallina.ogg` | Gallinas cacareando | freesound.org/s/200330 «Chicken chatter» | jsbarrett | CC0 |
 | `aleteo.ogg` | Aleteo de palomas que salen volando | freesound.org/s/415019 «antwerpen duiven vleugels» | NickPeeters | CC0 |
 | `pajaros.ogg` | Pájaros cantando en la selva (Palenque, México) | freesound.org/s/151773 «Pájaros Palenque» | universildo | CC0 |
+| `gallina-suave.ogg` | Gallina cacareando bajito | freesound.org/s/233093 «Chicken - Buck - 96kHz.wav» | JarredGibb | CC0 |
+| `ronroneo.ogg` | Gato ronroneando (para Bruno) | freesound.org/s/401825 «CatPurr.wav» | jochen1988 | CC0 |
+| `garua.ogg` | Lluvia suave | freesound.org/s/167034 «Light Rain» | soundrecorder7 | CC0 |
+| `charco.ogg` | Pasos en un charco | freesound.org/s/249911 «footsteps in a water puddle» | hintringer | CC0 |
+| `grillos.ogg` | Grillos de noche | freesound.org/s/134772 «CricketFallEveningNov2011.wav» | kvgarlic | CC0 |
 
 ## Cómo se usan en un cuento
 

@@ -8,7 +8,7 @@
 // El video sale con música de fondo original (motor/musica.js), los efectos de sonido
 // del motor y, si el cuento tiene narración importada (npm run voz), con esa voz.
 // La música baja sola mientras habla el narrador.
-// Opciones: --edad ninos | --fps 30 | --desde 0 --hasta 10 (segundos, para pruebas)
+// Opciones: --nombre tramo1 | --solo-imagen (sin mezclar sonido) | --edad ninos | --fps 30 | --desde 0 --hasta 10 (segundos, para pruebas)
 //           --sin-voz (ignora la narración) | --sin-musica | --sin-efectos
 //           --volumen-musica 1 (más alto: 1.5, más bajo: 0.6)
 import fs from 'node:fs';
@@ -78,7 +78,7 @@ try {
       console.log(`  foto ${i + 1}/${fotos} en ${t.toFixed(1)} s -> ${path.relative(raiz, f)}`);
     }
   } else {
-    const archivo = path.join(salida, `${cuento}-${formato}.mp4`);
+    const archivo = path.join(salida, `${opt('nombre', `${cuento}-${formato}`)}.mp4`); // --nombre: otro nombre de archivo (para grabar por tramos)
     if (soloSonido) {
       const mudo = archivo.replace(/\.mp4$/, '.mudo.mp4');
       spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', archivo, '-an', '-c:v', 'copy', mudo]);
@@ -97,10 +97,13 @@ try {
     }
     if (ff) ff.stdin.end();
     await termino;
-    const usados = narracion.filter((n) => n.inicio >= desde && n.inicio < hasta);
+    // --solo-imagen: tramo sin sonido (para grabar por partes y mezclar el sonido una sola vez al final).
+    const usados = opt('solo-imagen', false) ? null : narracion.filter((n) => n.inicio >= desde && n.inicio < hasta);
+    if (usados) {
     process.stdout.write(`\n  armando el sonido: ${[usados.length && `${usados.length} audios de narración`, !sinMusica && 'música', !sinEfectos && 'efectos'].filter(Boolean).join(', ') || 'nada'}`);
     const pistas = await grabarPistas(pagina, archivo, desde, hasta);
     ponerSonido(archivo, usados, pistas, desde, hasta - desde);
+    }
     console.log(`\n  video -> ${path.relative(raiz, archivo)}`);
   }
   if (errores.length) { console.error('Errores en la página:\n  ' + errores.join('\n  ')); process.exitCode = 1; }
