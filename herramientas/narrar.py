@@ -25,6 +25,12 @@ LIMPIAR_REFERENCIA = "silenceremove=start_periods=1:start_threshold=-40dB,highpa
 # "brillo": más agudos y menos graves (voz más clara y alegre; la aprobó Amargo para la voz femenina).
 BRILLO = "highshelf=f=3500:g=4,equalizer=f=250:t=q:w=1:g=-2,alimiter=limit=0.9"
 # Quita el silencio del principio y del final de cada audio narrado.
+# "color": forma extra del sonido para dar carácter a cada personaje.
+COLORES = {
+    "nasal": "equalizer=f=1400:t=q:w=1.2:g=6,highpass=f=250",          # gallina: chillona y nasal
+    "grave": "equalizer=f=160:t=q:w=1:g=5,lowpass=f=7000",              # tigre: grandote
+    "suave": "equalizer=f=3000:t=q:w=1:g=-2,equalizer=f=300:t=q:w=1:g=2",  # tortuga: cálida
+}
 RECORTAR = "silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse"
 
 
@@ -50,6 +56,7 @@ def main():
     p.add_argument("--expresividad", type=float, default=0.6)
     p.add_argument("--ritmo", type=float, default=0.5)
     p.add_argument("--salida", default=None)
+    p.add_argument("--narrador-ajustes", default=None, help='JSON, ej. {"tono": 1, "brillo": true}')
     p.add_argument("--voces", default=None,
                    help='JSON con una voz por personaje, ej. {"tortuga": "ruta/voz-tula.ogg"} o '
                         '{"tortuga": {"archivo": "ruta.ogg", "expresividad": 0.8, "velocidad": 1.15, "brillo": true}}. '
@@ -81,10 +88,13 @@ def main():
                 if not os.path.isabs(v["archivo"]):
                     v["archivo"] = os.path.join(os.path.dirname(os.path.abspath(a.voces)), v["archivo"])
                 voces[re.sub(r"[^a-z0-9_-]", "", k.lower())] = v
-    ajustes = {"narrador": {"expresividad": a.expresividad, "velocidad": 1.0, "brillo": False}}
+    ajustes = {"narrador": {"expresividad": a.expresividad, "velocidad": 1.0, "brillo": False, "tono": 0, "color": ""}}
     for pid, v in voces.items():
         ajustes[pid] = {"expresividad": float(v.get("expresividad", a.expresividad)),
-                        "velocidad": float(v.get("velocidad", 1.0)), "brillo": bool(v.get("brillo", False))}
+                        "velocidad": float(v.get("velocidad", 1.0)), "brillo": bool(v.get("brillo", False)),
+                        "tono": float(v.get("tono", 0)), "color": str(v.get("color", ""))}
+    if a.narrador_ajustes:
+        ajustes["narrador"].update(json.loads(a.narrador_ajustes))
     # Diálogos: (archivo, texto, personaje) para cada "dice" de un personaje con voz propia.
     for i, e in enumerate(cuento.get("escenas", []), 1):
         for c in e.get("personajes", []) or []:
@@ -117,8 +127,16 @@ def main():
             partes.append(wav.squeeze(0).numpy().astype(np.float32))
         sf.write(destino + ".tmp.wav", np.concatenate(partes), modelo.sr)
         filtro = RECORTAR
-        if ajustes[quien]["velocidad"] != 1.0:
-            filtro += f",atempo={ajustes[quien]['velocidad']:.3f}"
+        aj = ajustes[quien]
+        if aj.get("tono"):
+            # Sube o baja el tono en semitonos cambiando también el "tamaño" de la voz:
+            # más agudo suena a niño o caricatura, más grave a personaje grandote.
+            r = 2 ** (float(aj["tono"]) / 12)
+            filtro += f",asetrate={modelo.sr * r:.0f},aresample={modelo.sr},atempo={1 / r:.4f}"
+        if aj["velocidad"] != 1.0:
+            filtro += f",atempo={aj['velocidad']:.3f}"
+        if aj.get("color") in COLORES:
+            filtro += "," + COLORES[aj["color"]]
         if ajustes[quien]["brillo"]:
             filtro += "," + BRILLO
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", destino + ".tmp.wav", "-af", filtro, destino + ".rec.wav"], check=True)
